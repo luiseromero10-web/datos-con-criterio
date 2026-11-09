@@ -38,3 +38,9 @@ Se tomó "avancemos" como aprobación de las recomendaciones de docs/fuentes.md:
   si se pierde, la corrida descarga todo, ~10 min). Si cualquier paso falla se abre un issue y no se publica.
 - Secrets de GitHub que debe cargar el autor: `SOCRATA_APP_TOKEN` (opcional), `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `VERCEL_DEPLOY_HOOK`.
 - Pendiente (acciones hacia afuera, requieren confirmación): crear repo en GitHub y push, bucket de R2 y CORS, proyecto en Vercel y su deploy hook, corrida manual en Actions.
+
+## 2026-11-09 · D7 · R2: bucket y CORS (pendiente de crear)
+Bucket propuesto: `datos-con-criterio` (ubicación automática). Lectura pública solo de `gold/` y `snapshots/` (son datos agregados abiertos); escritura solo con la clave de la API.
+CORS en `docs/r2-cors.json`: GET/HEAD y cabecera Range (DuckDB-WASM lee Parquet por rangos). Se permite `*` porque los datos son públicos y de solo lectura;
+se puede restringir a `luiseromero.com` y al dominio `*.vercel.app` cuando existan.
+El conector de Cloudflare estaba sin autorizar (`needs_auth`), así que el bucket se crea con los pasos manuales de la conversación.
