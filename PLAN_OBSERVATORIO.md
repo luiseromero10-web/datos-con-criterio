@@ -240,4 +240,4 @@ Cada fase termina con un commit; nada se publica sin aprobación del autor.
 
 ## 12. Estado
 
-- [ ] Fase 0 · [ ] Fase 1 · [ ] Fase 2 · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
+- [x] Fase 0 · [~] Fase 1 (gold local listo; falta EDA/registro tardío, ver docs/decisiones.md) · [ ] Fase 2 · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
