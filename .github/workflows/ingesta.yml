@@ -1,0 +1,66 @@
+name: Ingesta semanal
+on:
+  schedule:
+    - cron: "0 11 * * 1"   # lunes 11:00 UTC (06:00 Colombia)
+  workflow_dispatch:
+    inputs:
+      forzar_fallo:
+        description: "Forzar que la validación falle (prueba del flujo de alerta)"
+        type: boolean
+        default: false
+      solo_simulacion:
+        description: "No subir a R2 ni disparar el deploy (solo simulación)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: ingesta
+  cancel-in-progress: false
+jobs:
+  ingesta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Restaurar bronze (incremental)
+        uses: actions/cache@v4
+        with:
+          path: data/bronze
+          key: bronze-${{ github.run_id }}
+          restore-keys: bronze-
+      - run: uv run python -m pipelines.seguridad.ingesta
+      - run: uv run python -m pipelines.seguridad.referencias
+      - run: uv run python -m pipelines.seguridad.transformar
+      - name: Validar (si falla, no se publica)
+        run: uv run python -m pipelines.seguridad.validaciones
+        env:
+          FORZAR_FALLO: ${{ inputs.forzar_fallo && '1' || '0' }}
+      - name: Publicar a R2
+        run: uv run python -m pipelines.seguridad.publicar ${{ inputs.solo_simulacion && '--dry-run' || '' }}
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      - name: Deploy hook de Vercel
+        if: ${{ !inputs.solo_simulacion }}
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$VERCEL_DEPLOY_HOOK" ]; then curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" > /dev/null && echo "deploy disparado"; else echo "sin VERCEL_DEPLOY_HOOK; se omite"; fi
+      - name: Abrir issue si algo falló
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cuerpo="La corrida ${{ github.run_id }} falló y no se publicó nada. Detalle: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -f data/validacion_reporte.md ]; then cuerpo="$cuerpo"$'\n\n'"$(cat data/validacion_reporte.md)"; fi
+          gh issue create --repo "${{ github.repository }}" --title "Ingesta fallida $(date +%F)" --body "$cuerpo"

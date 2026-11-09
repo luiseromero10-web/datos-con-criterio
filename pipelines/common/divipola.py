@@ -11,8 +11,7 @@ def normalizar_cod_mpio(valor) -> str | None:
     if valor is None:
         return None
     s = str(valor).strip()
-    if s.endswith(".0"):
-        s = s[:-2]
+    s = s.removesuffix(".0")
     if not s.isdigit() or len(s) > 5:
         return None
     return s.zfill(5)
