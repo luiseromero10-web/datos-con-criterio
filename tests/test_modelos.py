@@ -67,3 +67,19 @@ def test_predicciones_validas_pasan(tmp_path):
 def test_predicciones_con_intervalo_invertido_alertan(tmp_path):
     base, hoy = _gold_minimo(tmp_path, p10=5.0, p50=2.0, p90=3.0)
     assert any("Predicciones" in p for p in validar(str(base), hoy=hoy))
+
+
+def test_marcar_tipo_provisional_y_futuro():
+    import pandas as pd
+
+    from models.seguridad.predecir import marcar_tipo
+    semanas = pd.Series(pd.to_datetime(["2026-09-21", "2026-09-28", "2026-10-05", "2026-11-16"]))
+    assert list(marcar_tipo(semanas, pd.Timestamp("2026-09-30"))) == ["provisional", "provisional", "futuro", "futuro"]
+
+
+def test_fecha_corte_se_lee_de_silver_sin_metadatos(tmp_path, monkeypatch):
+    import models.seguridad.predecir as pr
+    base, _ = _gold_minimo(tmp_path)  # no crea metadatos.json
+    monkeypatch.setattr(pr, "DATA", base)
+    assert not (base / "gold" / "metadatos.json").exists()
+    assert pr.fecha_corte() == pr.pd.Timestamp("2026-03-29")

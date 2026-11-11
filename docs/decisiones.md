@@ -76,3 +76,8 @@ Si el registro tardío resulta menor que 8 semanas, se reduce `SEMANAS_PROVISION
 ## 2026-11-11 · D12 · Artefactos y flujo de modelos
 `models/seguridad/artifacts/{seleccion.json,metrics.json}` versionados como valor por defecto. `modelos.yml` (día 1 de cada mes) reentrena, evalúa y sube a R2 `models/`. `ingesta.yml` descarga el vigente de R2 (si no hay, usa el del repo),
 corre `predecir.py`, valida (incluye coherencia de intervalos) y publica `gold/predicciones.parquet`, `gold/metrics.json` y `gold/metadatos.json` (versión y método del modelo).
+
+## 2026-11-11 · D13 · Corrección: `tipo` de las predicciones en Actions
+La primera corrida de ingesta con predicciones (run 43119752872) publicó las 9 808 filas como `futuro`: `predecir.py` leía `fecha_corte` de `metadatos.json`, que en un servidor limpio aún no existe en ese paso.
+En local no se veía porque el archivo quedaba de corridas anteriores. Ahora `fecha_corte()` se calcula desde silver y `marcar_tipo()` tiene prueba. Hasta relanzar la ingesta, `gold/predicciones.parquet` en R2 tiene el campo `tipo` incorrecto (los demás campos son correctos).
+Lección: probar los pasos de Actions sin los archivos residuales del equipo local.

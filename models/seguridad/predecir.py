@@ -69,6 +69,18 @@ def pronosticar(metodo: str, s: pd.DataFrame) -> pd.Series:
     return pd.concat(partes, axis=1).mean(axis=1).clip(lower=0)
 
 
+def fecha_corte() -> pd.Timestamp:
+    """Último hecho registrado en silver. No depende de metadatos.json, que en un servidor limpio aún no existe."""
+    import duckdb
+    r = duckdb.connect().execute(f"select max(fecha) from '{(DATA / 'silver' / 'hechos.parquet').as_posix()}'").fetchone()[0]
+    return pd.Timestamp(r)
+
+
+def marcar_tipo(periodos: pd.Series, corte: pd.Timestamp) -> np.ndarray:
+    """'provisional' si la semana (lunes) empieza en o antes del corte de datos; 'futuro' si empieza después."""
+    return np.where(periodos <= corte, "provisional", "futuro")
+
+
 def main() -> int:
     sel, origen = cargar_seleccion()
     metodo = next(iter(sel["modelos"].values()))
@@ -85,8 +97,7 @@ def main() -> int:
     yhat["p10"], yhat["p90"] = np.round(lo, 3), np.round(hi, 3)
     yhat["p50"] = yhat["p50"].round(3)
     meta = json.loads((DATA / "gold" / "metadatos.json").read_text(encoding="utf-8")) if (DATA / "gold" / "metadatos.json").exists() else {}
-    corte = meta.get("fecha_corte")
-    yhat["tipo"] = np.where(yhat["ds"] <= pd.Timestamp(corte), "provisional", "futuro") if corte else "futuro"
+    yhat["tipo"] = marcar_tipo(yhat["ds"], fecha_corte())
     out = yhat.rename(columns={"ds": "periodo"})[["periodo", "nivel", "cod", "delito", "h", "p10", "p50", "p90", "tipo"]]
     (DATA / "gold").mkdir(parents=True, exist_ok=True)
     out.to_parquet(DATA / "gold" / "predicciones.parquet", index=False)
