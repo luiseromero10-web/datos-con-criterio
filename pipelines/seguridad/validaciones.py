@@ -71,6 +71,16 @@ def validar(data: str | None = None, hoy: date | None = None) -> list[str]:
     if s != g:
         problemas.append(f"ConciliaciÃ³n: silver (con municipio vÃ¡lido) suma {s} y gold {g}.")
 
+    pred = base / "gold" / "predicciones.parquet"
+    if pred.exists():
+        d = con.execute(f"select * from '{pred.as_posix()}'").df()
+        if (d["p10"] < 0).any() or (d["p10"] > d["p50"]).any() or (d["p50"] > d["p90"]).any():
+            problemas.append("Predicciones: intervalos inconsistentes (p10 > p50, p50 > p90 o valores negativos).")
+        if d[["p10", "p50", "p90"]].isna().any().any():
+            problemas.append("Predicciones: hay valores nulos.")
+        if d.groupby(["nivel", "cod", "delito"]).size().nunique() != 1:
+            problemas.append("Predicciones: no todas las series tienen el mismo número de semanas.")
+
     if os.environ.get("FORZAR_FALLO") == "1":
         problemas.append("Fallo forzado (FORZAR_FALLO=1) para probar el flujo de alerta.")
     return problemas

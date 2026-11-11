@@ -54,3 +54,25 @@ Pendiente: token de API y secrets de GitHub.
 - Corrida con `forzar_fallo=true` (run 43115659624): falla en "Validar", se omiten "Publicar a R2" y "Deploy hook", se abre el issue con el motivo y R2 conserva la publicación anterior (`actualizado` sin cambio). Criterio de aceptación cumplido.
 - **Cambio al plan:** el proyecto de Vercel y su deploy hook se crean en la Fase 5, cuando exista `site/`. Un proyecto de Vercel sin sitio no despliega nada y el hook no se puede probar. `VERCEL_DEPLOY_HOOK` sigue sin existir; el workflow lo omite sin fallar.
 - Los issues #1 y #2 son de prueba y se pueden cerrar.
+
+## 2026-11-11 · D9 · Segmentación del pronóstico
+Municipal solo si la media semanal es ≥ 2 hechos (415 series: homicidio 19, hurto a comercio 51, a personas 123, a residencias 51, a vehículos 50, lesiones 121); departamental siempre (33 × 6 = 198).
+Total 613 series. Razón: con media < 2 la serie es casi toda ceros y el error relativo no significa nada. Umbral en `models/seguridad/prep.py` (`UMBRAL_MEDIA_MPIO`).
+
+## 2026-11-11 · D10 · Horizonte de 16 semanas (cambio al plan)
+El plan pedía 8 semanas. Con 8 semanas provisionales descartadas y 3 semanas de retraso de publicación, 8 semanas desde la última confiable (2026-07-27) terminan el 21-sep, antes del corte (30-sep): ninguna sería futura.
+Se pronostican **16 semanas**, validadas en el backtest por tramo (1-8 y 9-16): las 8 primeras cubren las provisionales y las demás llegan hasta unas 7 semanas de futuro real (`tipo` = `provisional` | `futuro` en predicciones.parquet).
+Si el registro tardío resulta menor que 8 semanas, se reduce `SEMANAS_PROVISIONALES` y el horizonte puede bajar.
+
+## 2026-11-11 · D11 · Resultados del backtest y elección del método
+12 cortes, 16 semanas, paso 8 (2024-07 a 2026-04). Método y cuantiles conformales se eligen con los cortes 1-6; se reporta con los 7-12.
+- Elegir un modelo **por grupo** sobreajustó (WAPE 0,2461 contra 0,239 del promedio en pruebas de ese momento); se cambió a **un único método para todos**, elegido por menor WAPE en 1-6.
+- Con horizonte de 16 la regla elige **TSB**: WAPE 0,2407 frente a 0,2609 de la mejor base (media móvil 4): **7,7 % menos de error**. Mejora en 6 de 6 delitos (1,7 % a 10,0 %); tramos 1-8: 7,9 %, 9-16: 7,6 %.
+- LightGBM (con rezagos, festivos y quincenas) no gana: WAPE 0,2593. TSB es un nivel plano; se documenta en la ficha.
+- Cobertura del intervalo 80 %: 0,792 (semanas 1-8) y 0,779 (9-16); por grupo entre 0,73 y 0,81.
+- Salvedad: se compararon alternativas mirando también los cortes 7-12, por lo que la cifra de evaluación es algo optimista.
+- Registro tardío (indicio, no medición): para hurto de vehículos, lo que tenía la DIJIN el 31-ago frente a MDN el 21-oct da razones de 0,97 (mayo), 0,90 (julio) y 0,57 (última semana, parcial por construcción). Se mantienen 8 semanas provisionales.
+
+## 2026-11-11 · D12 · Artefactos y flujo de modelos
+`models/seguridad/artifacts/{seleccion.json,metrics.json}` versionados como valor por defecto. `modelos.yml` (día 1 de cada mes) reentrena, evalúa y sube a R2 `models/`. `ingesta.yml` descarga el vigente de R2 (si no hay, usa el del repo),
+corre `predecir.py`, valida (incluye coherencia de intervalos) y publica `gold/predicciones.parquet`, `gold/metrics.json` y `gold/metadatos.json` (versión y método del modelo).

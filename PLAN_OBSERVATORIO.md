@@ -240,4 +240,4 @@ Cada fase termina con un commit; nada se publica sin aprobación del autor.
 
 ## 12. Estado
 
-- [x] Fase 0 · [~] Fase 1 (gold local listo; falta EDA/registro tardío, ver docs/decisiones.md) · [x] Fase 2 (Vercel y su deploy hook pasan a la Fase 5, ver docs/decisiones.md) · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
+- [x] Fase 0 · [~] Fase 1 (gold local listo; falta EDA/registro tardío, ver docs/decisiones.md) · [x] Fase 2 (Vercel y su deploy hook pasan a la Fase 5, ver docs/decisiones.md) · [x] Fase 3 (local; falta correr modelos.yml en Actions) · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7

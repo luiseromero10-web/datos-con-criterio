@@ -1,0 +1,48 @@
+name: Entrenamiento mensual
+on:
+  schedule:
+    - cron: "0 12 1 * *"   # día 1 de cada mes, 12:00 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: modelos
+  cancel-in-progress: false
+jobs:
+  modelos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Restaurar bronze
+        uses: actions/cache@v4
+        with:
+          path: data/bronze
+          key: bronze-${{ github.run_id }}
+          restore-keys: bronze-
+      - run: uv run python -m pipelines.seguridad.ingesta
+      - run: uv run python -m pipelines.seguridad.referencias
+      - run: uv run python -m pipelines.seguridad.transformar
+      - run: uv run python -W ignore -m models.seguridad.backtest
+      - run: uv run python -W ignore -m models.seguridad.evaluar
+      - name: Publicar selección y métricas a R2
+        run: uv run python -m pipelines.seguridad.publicar --modelos
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      - name: Abrir issue si algo falló
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" --title "Entrenamiento mensual fallido $(date +%F)" \
+            --body "La corrida ${{ github.run_id }} falló: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

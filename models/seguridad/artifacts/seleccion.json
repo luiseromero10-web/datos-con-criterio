@@ -1,0 +1,114 @@
+{
+  "modelos": {
+    "homicidio|dpto": "TSB",
+    "homicidio|mpio": "TSB",
+    "hurto_comercio|dpto": "TSB",
+    "hurto_comercio|mpio": "TSB",
+    "hurto_personas|dpto": "TSB",
+    "hurto_personas|mpio": "TSB",
+    "hurto_residencias|dpto": "TSB",
+    "hurto_residencias|mpio": "TSB",
+    "hurto_vehiculos|dpto": "TSB",
+    "hurto_vehiculos|mpio": "TSB",
+    "lesiones|dpto": "TSB",
+    "lesiones|mpio": "TSB"
+  },
+  "conformal_q": {
+    "homicidio|dpto|h1_8": [
+      -1.216326760301766,
+      1.414393781033476
+    ],
+    "homicidio|dpto|h9_16": [
+      -1.232473645511823,
+      1.4820517782365867
+    ],
+    "homicidio|mpio|h1_8": [
+      -1.141702821644277,
+      1.514078732746832
+    ],
+    "homicidio|mpio|h9_16": [
+      -1.2097917465031691,
+      1.569636512317823
+    ],
+    "hurto_comercio|dpto|h1_8": [
+      -1.642758863351049,
+      1.5568705463667079
+    ],
+    "hurto_comercio|dpto|h9_16": [
+      -1.985231378969247,
+      1.6514411553415278
+    ],
+    "hurto_comercio|mpio|h1_8": [
+      -1.310342543511168,
+      1.4936200574094642
+    ],
+    "hurto_comercio|mpio|h9_16": [
+      -1.4337316371619329,
+      1.4737170947290625
+    ],
+    "hurto_personas|dpto|h1_8": [
+      -2.392940794693616,
+      2.0849182739854917
+    ],
+    "hurto_personas|dpto|h9_16": [
+      -2.900825318535561,
+      2.446111567895335
+    ],
+    "hurto_personas|mpio|h1_8": [
+      -1.5399062467925115,
+      1.6430487702507492
+    ],
+    "hurto_personas|mpio|h9_16": [
+      -1.7013583715532892,
+      1.7437026432400067
+    ],
+    "hurto_residencias|dpto|h1_8": [
+      -1.3900547897114521,
+      1.4829903918657923
+    ],
+    "hurto_residencias|dpto|h9_16": [
+      -1.5164518457286884,
+      1.3966267458253434
+    ],
+    "hurto_residencias|mpio|h1_8": [
+      -1.2285740849165336,
+      1.3955605324471456
+    ],
+    "hurto_residencias|mpio|h9_16": [
+      -1.2948732634199476,
+      1.4038217338911607
+    ],
+    "hurto_vehiculos|dpto|h1_8": [
+      -1.534120865546365,
+      1.5314237148098853
+    ],
+    "hurto_vehiculos|dpto|h9_16": [
+      -1.6520881305228556,
+      1.5323968990812016
+    ],
+    "hurto_vehiculos|mpio|h1_8": [
+      -1.3903991380885792,
+      1.5323036902864842
+    ],
+    "hurto_vehiculos|mpio|h9_16": [
+      -1.4611102559043911,
+      1.5613937873754682
+    ],
+    "lesiones|dpto|h1_8": [
+      -1.7863039115539945,
+      2.189745302110316
+    ],
+    "lesiones|dpto|h9_16": [
+      -1.830546957552144,
+      2.310145772521631
+    ],
+    "lesiones|mpio|h1_8": [
+      -1.3488015882074187,
+      1.707013576890803
+    ],
+    "lesiones|mpio|h9_16": [
+      -1.3794340377624688,
+      1.8366384505544615
+    ]
+  }
+}
