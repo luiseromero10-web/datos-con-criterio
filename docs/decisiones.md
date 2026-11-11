@@ -43,4 +43,6 @@ Se tomó "avancemos" como aprobación de las recomendaciones de docs/fuentes.md:
 Bucket propuesto: `datos-con-criterio` (ubicación automática). Lectura pública solo de `gold/` y `snapshots/` (son datos agregados abiertos); escritura solo con la clave de la API.
 CORS en `docs/r2-cors.json`: GET/HEAD y cabecera Range (DuckDB-WASM lee Parquet por rangos). Se permite `*` porque los datos son públicos y de solo lectura;
 se puede restringir a `luiseromero.com` y al dominio `*.vercel.app` cuando existan.
-El conector de Cloudflare estaba sin autorizar (`needs_auth`), así que el bucket se crea con los pasos manuales de la conversación.
+**Hecho (2026-11-11):** R2 activado por el autor (plan gratuito, $0/mes de base). Bucket `datos-con-criterio` y CORS creados con Wrangler (sesión OAuth del autor); el conector de Cloudflare
+seguía `needs_auth`. Wrangler usa otro formato de CORS: `docs/r2-cors.wrangler.json` (el de `docs/r2-cors.json` es el del panel).
+Pendiente: acceso público de lectura (r2.dev o dominio propio), token de API y secrets de GitHub.
