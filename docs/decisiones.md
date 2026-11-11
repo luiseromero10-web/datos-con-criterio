@@ -45,4 +45,5 @@ CORS en `docs/r2-cors.json`: GET/HEAD y cabecera Range (DuckDB-WASM lee Parquet 
 se puede restringir a `luiseromero.com` y al dominio `*.vercel.app` cuando existan.
 **Hecho (2026-11-11):** R2 activado por el autor (plan gratuito, $0/mes de base). Bucket `datos-con-criterio` y CORS creados con Wrangler (sesión OAuth del autor); el conector de Cloudflare
 seguía `needs_auth`. Wrangler usa otro formato de CORS: `docs/r2-cors.wrangler.json` (el de `docs/r2-cors.json` es el del panel).
-Pendiente: acceso público de lectura (r2.dev o dominio propio), token de API y secrets de GitHub.
+Acceso público habilitado el 2026-11-11 en `https://pub-9d9d9ff84f4e49209f1c0cdfdaaaf366.r2.dev` (r2.dev: con límite de velocidad, para desarrollo; pasar a dominio propio en producción).
+Pendiente: token de API y secrets de GitHub.
