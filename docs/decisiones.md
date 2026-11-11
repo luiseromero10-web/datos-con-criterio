@@ -47,3 +47,10 @@ se puede restringir a `luiseromero.com` y al dominio `*.vercel.app` cuando exist
 seguía `needs_auth`. Wrangler usa otro formato de CORS: `docs/r2-cors.wrangler.json` (el de `docs/r2-cors.json` es el del panel).
 Acceso público habilitado el 2026-11-11 en `https://pub-9d9d9ff84f4e49209f1c0cdfdaaaf366.r2.dev` (r2.dev: con límite de velocidad, para desarrollo; pasar a dominio propio en producción).
 Pendiente: token de API y secrets de GitHub.
+
+## 2026-11-11 · D8 · Cierre de la Fase 2
+- Corrida manual de `ingesta.yml` (run 43111598999): ingesta, transformación, validaciones y publicación en verde; gold en R2 (4 archivos, 200 OK, lectura por rangos 206 con CORS).
+- Primera corrida (43107975573) falló en la subida con `AccessDenied`: el token de R2 se había creado como solo lectura. Corregido a Object Read & Write sobre el bucket; no se cambiaron claves.
+- Corrida con `forzar_fallo=true` (run 43115659624): falla en "Validar", se omiten "Publicar a R2" y "Deploy hook", se abre el issue con el motivo y R2 conserva la publicación anterior (`actualizado` sin cambio). Criterio de aceptación cumplido.
+- **Cambio al plan:** el proyecto de Vercel y su deploy hook se crean en la Fase 5, cuando exista `site/`. Un proyecto de Vercel sin sitio no despliega nada y el hook no se puede probar. `VERCEL_DEPLOY_HOOK` sigue sin existir; el workflow lo omite sin fallar.
+- Los issues #1 y #2 son de prueba y se pueden cerrar.
