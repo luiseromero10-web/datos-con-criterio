@@ -33,11 +33,16 @@ Las decisiones marcadas **[CONFIRMAR]** las aprueba el autor antes de empezar la
 | Hecho | Fuente | Consecuencia |
 |---|---|---|
 | Vercel Web Analytics en Hobby: **50 000 eventos/mes compartidos entre todos los proyectos** de la cuenta, **sin eventos personalizados**, ventana de 1 mes; al pasarse, se pausa la recolección | vercel.com/docs/analytics/limits-and-pricing (actualizado 2026-08-25) | No sirve para medir interacción. Y compartiría cupo con Lector, ROMI e INDI. |
-| Cloudflare Web Analytics gratis: sin cookies, cuenta páginas vistas, **sin eventos personalizados** (según fuentes secundarias; verificar en P0) | Búsqueda; no confirmado en la doc oficial | Sirve para visitas, no para interacción. |
+| Cloudflare Web Analytics: gratis; **no usa cookies ni almacenamiento local para rastrear y no identifica por IP**; eventos personalizados **solo como plan a futuro** (no hay evidencia de que existan). Límite: 10 sitios si no pasan por el proxy de Cloudflare. La doc oficial de límites no dice nada de retención ni de muestreo | Artículo oficial de Cloudflare (2020) y developers.cloudflare.com/web-analytics/limits | Sirve para visitas, no para interacción. La retención es **desconocida**; no se promete. |
 | Next.js 16 soporta **multi-zonas**: apps Next independientes servidas bajo un mismo dominio con `rewrites` + `assetPrefix`; entre zonas se navega con `<a>`, no con `<Link>` | `site/node_modules/next/dist/docs/01-app/02-guides/multi-zones.md` | Cada app puede ser su propio proyecto de Vercel sin perder un dominio único. |
-| Supabase: hay dos proyectos, `INDI_App` y `romi-app` | MCP de Supabase, `list_projects` (solo lectura) | Se usará `romi-app`, solo con objetos `dcc_`. |
+| Supabase: hay dos proyectos, `INDI_App` y `romi-app` (los 2 gratuitos que permite el plan) | MCP de Supabase, `list_projects` (solo lectura) | Se usará `romi-app`, solo con objetos `dcc_`. |
+| **`romi-app` hoy: 13 MB de 500 MB, 19 tablas públicas (todas con RLS), 0 objetos `dcc_`, 0 Edge Functions** | `list_tables`, `list_edge_functions` y una consulta de solo lectura | Sin choques de nombres; hay holgura de sobra. |
+| Supabase gratuito: **500 000 invocaciones de Edge Functions al mes, compartidas por toda la organización**; 500 MB de base por proyecto; 5 GB de salida; las peticiones OPTIONS no se cobran | supabase.com/docs/guides/functions/pricing y billing-on-supabase | Presupuesto de eventos: ver 2.5. Al superar la cuota hay aviso y periodo de gracia, no cobro. |
+| **Supabase pausa los proyectos gratuitos con poca actividad en 7 días** (se pueden restaurar hasta 90 días después) | supabase.com/docs/guides/platform/free-project-pausing | Riesgo real: si `romi-app` se pausa, comentarios y eventos dejan de funcionar. Todo el cliente debe **degradar sin romper la app** (P3). Nuestra propia actividad ayuda a mantenerlo vivo. |
+| Cloudflare Turnstile gratis: hasta 20 widgets, 10 hostnames por widget, desafíos ilimitados. La doc no dice si pide método de pago (la cuenta ya tiene uno por R2) | developers.cloudflare.com/turnstile/plans | Alcanza de sobra. |
+| **Línea base de seguridad de `romi-app`: 15 avisos que ya existían** (4 funciones con `search_path` mutable, 5 funciones `SECURITY DEFINER` ejecutables por `anon`, 5 por `authenticated`, 1 por protección de contraseñas filtradas desactivada) | `get_advisors` (seguridad), 2026-11-12 | Son de ROMI y **no se tocan**. El criterio de P3 es «ningún aviso nuevo» frente a esta línea base. |
 
-**Pendiente de verificar en P0** (no lo afirmo sin mirar): límite gratuito de invocaciones de Edge Functions de Supabase, tamaño actual de la base de ROMI frente a los 500 MB del plan gratuito, y límites de Cloudflare Turnstile.
+**Verificado en P0 el 2026-11-12** (detalle en `docs/decisiones.md`, D18). Quedan sin verificar: la retención de datos de Cloudflare Web Analytics y si Turnstile exige método de pago.
 
 ---
 
@@ -167,6 +172,8 @@ Recomiendo dos capas, ambas gratuitas y sin cookies:
    - No se guarda ningún dato personal, identificador de visitante ni IP: solo conteos por día, app, evento y propiedad.
    - Lista inicial de eventos del observatorio: `vista_app`, `filtro_delito:<id>`, `filtro_departamento:<cod>`, `filtro_municipio`, `filtro_periodo:<id>`, `clic_mapa`, `clic_tabla_cambios`, `clic_tabla_atipicas`, `ver_metodologia`, `abrir_articulo:<slug>`, `comentario_enviado`, `feedback_enviado`, `error_datos`.
    - El municipio va sin código, para no crear una fila por municipio.
+   - **Presupuesto (cuota gratuita: 500 000 invocaciones al mes, de toda la organización):** cada lote de eventos y cada lectura de comentarios cuenta como una invocación.
+     Para cuidarla: `track()` envía como máximo 3 lotes por sesión; los comentarios se leen solo cuando el visitante los abre; y hay un interruptor `NEXT_PUBLIC_EVENTOS=off` que apaga el envío sin redesplegar código. Con unas 3 invocaciones por visita, la cuota alcanza para unas 150 000 visitas al mes.
    - Lectura: al inicio con SQL en Supabase. Más adelante, un panel privado como app propia, que también muestra criterio con datos.
 
 ### 2.6 Artículos
@@ -301,7 +308,8 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - el feedback no se puede leer desde fuera;
   - un envío sin Turnstile o con el campo trampa lleno se rechaza;
   - el sexto envío del día desde el mismo origen se rechaza;
-  - `get_advisors` (seguridad) no reporta problemas nuevos en objetos `dcc_`. No se modifica nada de ROMI aunque reporte otros.
+  - `get_advisors` (seguridad) no reporta avisos nuevos frente a la línea base de 15 avisos de la sección 1. No se modifica nada de ROMI aunque reporte otros;
+  - con la función apagada o el proyecto pausado, la app sigue funcionando: el bloque de comentarios muestra «no disponible por ahora», `track()` no hace nada y no aparecen errores en la consola.
 
 ### P4 — Artículos
 - MDX en el portal, el índice `indice.json`, y las páginas `/articulos` y `/articulos/<slug>` con comentarios.
@@ -345,11 +353,13 @@ El único costo previsto sigue siendo el dominio.
 |---|---|
 | Afectar a ROMI | Solo objetos `dcc_`; ninguna política para anon; la clave de ROMI no se usa en los frontends; `list_tables` antes y después; confirmación en cada migración |
 | Spam en comentarios | Turnstile, campo trampa, límite diario, moderación previa |
-| Llenar la base de ROMI | Eventos agregados por día; límites de longitud; P0 mide el uso actual |
+| Llenar la base de ROMI | Eventos agregados por día; límites de longitud. P0 midió el uso actual: 13 MB de 500 MB |
+| Supabase pausa `romi-app` por inactividad | La app degrada sin romper; se restaura desde el panel hasta 90 días después; la actividad de la plataforma ayuda a evitarlo |
+| Superar 500 000 invocaciones al mes | Lotes de eventos, lectura de comentarios bajo demanda, interruptor de apagado; Supabase avisa y da gracia, no cobra |
 | Navegación entre zonas más lenta | Las páginas que se visitan juntas viven en la misma zona; entre zonas se navega con `<a>` (navegación completa, aceptable) |
 | Alcance que crece | La ficha municipal y SECOP quedan fuera de este plan; cada app nueva tiene su propio plan |
 
 ## 7. Estado
 
-- [ ] P0 · [ ] P1 · [ ] P2 · [ ] P3 · [ ] P4 · [ ] P5
+- [x] P0 (verificada 2026-11-12; falta la validación del autor de las decisiones 1, 2, 3 y 5) · [ ] P1 · [ ] P2 · [ ] P3 · [ ] P4 · [ ] P5
 - Identidad visual (2.8): aplicada en el sitio local, pendiente de validación del autor.

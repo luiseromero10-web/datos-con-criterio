@@ -124,3 +124,25 @@ Primera versión de Lighthouse: accesibilidad 94 y rendimiento 79; se corrigió 
 No verificado: carga en frío con red lenta real; el despliegue en Vercel.
 
 **Observación sobre los datos (para el autor):** la tabla de semanas atípicas destaca Guaviare con registros individuales de 27 (2026-01-12, El Retorno) y 38 víctimas (2026-05-26, San José del Guaviare); sin ellos 2026 llevaría ~31 homicidios. Pueden ser hechos reales con varias víctimas (p. ej. enfrentamientos armados) o errores de registro; no está verificado. El sitio los muestra como atípicos, sin interpretarlos.
+
+
+## 2026-11-12 · D18 · P0 de PLAN_PLATAFORMA: verificaciones (solo lectura)
+Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatorio-pre-plataforma` (estado del observatorio local, 86 archivos versionados); etiqueta `visual-v1-editorial` con el diseño anterior. Locales, sin subir. Los datos descargados (`data/`) no están en git; se regeneran y el gold está en R2.
+
+**`romi-app` (Supabase, ref emkinfqdwjtzkkyabmyb, sa-east-1), consultado sin modificar nada:**
+- 13 MB de 500 MB; 19 tablas públicas con RLS (categories, products, inventory, sync_log, ai_config, customers, orders, order_items, app_users, conversations, messages, agents, app_settings, social_posts, baby_votes, baby_rsvp, lector_books, lector_reading_progress, nl_records); 0 tablas o funciones `dcc_`; 0 Edge Functions.
+- Seguridad, línea base (15 avisos previos, todos de ROMI, no se tocan): 4 `function_search_path_mutable`; 5 `anon_security_definer_function_executable` y 5 `authenticated_security_definer_function_executable` (`buscar_inventario`, `crear_pedido_wpp`, `estado_pedido_wpp`, `get_my_role`, `producto_disponible`); 1 `auth_leaked_password_protection`.
+  Observación para el autor: que `anon` pueda ejecutar por REST una función `SECURITY DEFINER` como `crear_pedido_wpp` merece revisión en ROMI, fuera del alcance de este plan.
+
+**Límites verificados (documentación oficial):**
+- Supabase gratuito: 500 000 invocaciones de Edge Functions al mes (cuota de toda la organización), 500 MB por proyecto, 5 GB de salida. **Pausa por inactividad a los 7 días** (restaurable hasta 90 días después).
+- Turnstile gratuito: 20 widgets, 10 hostnames por widget, desafíos ilimitados.
+- Cloudflare Web Analytics: gratis; sin cookies ni almacenamiento local para rastrear y sin identificación por IP (artículo oficial de 2020); eventos personalizados solo como plan a futuro; 10 sitios sin proxy. **Retención y muestreo: no documentados** en las páginas oficiales consultadas.
+- Vercel Web Analytics (Hobby): 50 000 eventos al mes compartidos, sin eventos personalizados, ventana de 1 mes.
+
+**Consecuencias para el plan:** presupuesto de invocaciones e interruptor de apagado (2.5); degradación sin romper si Supabase está pausado (P3); criterio de seguridad de P3 = «ningún aviso nuevo» frente a la línea base.
+**Pendiente:** validación del autor de las decisiones 1 (multi-zonas), 2 (Supabase en ROMI con aislamiento), 3 (visitas con Cloudflare + eventos propios) y 5 (identidad visual) antes de P1.
+
+## 2026-11-12 · D19 · Ajustes visuales tras revisión del autor
+- Líneas entre municipios: eran blancas de 0,25 px con 60 % de opacidad y se perdían sobre los tonos claros de la rampa (y en oscuro casi no se veían). Ahora son oscuras en el tema claro (`#0b1f3a`, 40 %) y azul medio en el oscuro (`#7da0d6`, 55 %), con grosor que crece con el zoom (0,35 px a nivel país, 1,7 px muy cerca).
+- Cifras clave: en la primera versión se pintaban en una tipografía monoespaciada ancha; al pasar a Archivo quedaron más angostas y livianas aunque el tamaño en código era el mismo (36 px). Ahora tienen tamaño explícito y proporcional al ancho: de 34 px en móvil a 52 px en escritorio.
