@@ -242,3 +242,11 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 
 **No verificado aun:** Turnstile con token real, envio de punta a punta desde una app publicada, el 429 del sexto envio (requiere tokens reales), el arranque con `SUPABASE_SECRET_KEYS` fue ejercitado por eventos y lectura (funciona).
 **Pendiente:** variables de entorno de las apps (Site key) y publicacion (P5).
+
+
+## 2026-11-12 · D25 · P3: flujo real de comentarios verificado de punta a punta
+**Prueba:** app de seguridad compilada en produccion y servida en `localhost:3000` (origen permitido), con la Site key real de Turnstile en `apps/seguridad/.env.production.local` (ignorado por git). Un comentario enviado desde el Chrome del autor con el widget real: respuesta \"Gracias, se publicara cuando el autor lo apruebe\"; fila `pendiente` en `dcc_comentarios` (hilo `app:seguridad`, `app_origen` seguridad); limite diario guardado como hash SHA-256 de 64 caracteres, sin IP; tras aprobarla (`estado=aprobado`) aparecio en `GET /comentarios` y en `GET /conteos`. Datos de prueba borrados despues.
+
+**Hallazgo:** el navegador integrado del panel de Claude falla el widget con el error 600010 (Cloudflare lo trata como automatizado); en un Chrome normal funciona. No es un defecto de la app ni de la configuracion.
+
+**Sigue sin verificar:** el 429 del sexto envio (necesita 6 tokens reales), el formulario de feedback con widget real, y el comportamiento desde el dominio publicado (P5).
