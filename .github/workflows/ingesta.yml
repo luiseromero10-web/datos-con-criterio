@@ -36,6 +36,11 @@ jobs:
           path: data/bronze
           key: bronze-${{ github.run_id }}
           restore-keys: bronze-
+      - name: Restaurar MGN (no cambia)
+        uses: actions/cache@v4
+        with:
+          path: data/raw/mgn_municipios_2018.geojson
+          key: mgn-2018-v1
       - run: uv run python -m pipelines.seguridad.ingesta
       - run: uv run python -m pipelines.seguridad.referencias
       - run: uv run python -m pipelines.seguridad.transformar
@@ -47,6 +52,11 @@ jobs:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
       - run: uv run python -W ignore -m models.seguridad.predecir
+      - name: Polígonos municipales (MGN 2018, vigencia fija)
+        run: |
+          [ -f data/raw/mgn_municipios_2018.geojson ] || uv run python -m pipelines.seguridad.mgn
+      - run: uv run python -W ignore -m models.seguridad.anomalias
+      - run: uv run python -W ignore -m models.seguridad.hotspots
       - name: Validar (si falla, no se publica)
         run: uv run python -m pipelines.seguridad.validaciones
         env:

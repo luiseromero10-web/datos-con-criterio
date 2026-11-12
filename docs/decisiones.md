@@ -85,3 +85,19 @@ Lección: probar los pasos de Actions sin los archivos residuales del equipo loc
 ## 2026-11-11 · D14 · MGN resuelto
 Polígonos municipales del MGN 2018 desde el servicio ArcGIS del DANE (ver docs/fuentes.md). Verificado: 1 122 polígonos únicos, sin geometrías vacías, códigos = DIVIPOLA salvo 94663 (solo MGN) y 27493 (solo DIVIPOLA), ambos sin hechos.
 Pendiente para la Fase 4: instalar geopandas/libpysal/esda y validar geometrías y contigüidad Queen (con tolerancia por la simplificación).
+
+## 2026-11-12 · D15 · Fase 4: anomalías y puntos calientes (local)
+**Anomalías** (`models/seguridad/anomalias.py`): esperado = mediana de las 26 semanas previas; puntaje = (valor − esperado)/√(esperado+1), estandarizado con la MAD de la serie; atípica si |z| > 3. Mismas 613 series del pronóstico; solo semanas confiables (hasta 2026-07-27).
+Resultado: 3 696 semanas atípicas de 258 686 evaluadas (1,43 %). Se guardan solo las atípicas (`gold/anomalias.parquet`), no todas las semanas.
+- Defecto hallado al revisar casos: sin piso en la desviación, series casi todo ceros (MAD = 0) daban z de millones. Se añadió `SIGMA_MIN = 1` (un conteo no es menos disperso que Poisson), una prueba y una validación de |z| ≤ 100.
+- Casos que tienen sentido: inicio del confinamiento (semana 2020-03-23/30: hurto a personas en Bogotá 413 vs 2 338 esperados); paro nacional (2021-04-26: hurto a comercio en Valle del Cauca 334 vs 90; 2021-05-17: homicidio en Valle 90 vs 43).
+- Caso no explicado: semana 2019-12-30, 61 series de hurto a personas "altas" (z medio 5,5). Puede ser un efecto de cambio de año o de registro; no se ha investigado.
+- Limitación: la línea base no tiene estacionalidad; semanas de fin de año pueden salir atípicas por calendario.
+
+**Puntos calientes** (`models/seguridad/hotspots.py`): Gi* (esda) sobre tasas por 100 000 hab. suavizadas con Bayes empírico, contigüidad Queen del MGN 2018 (1 122 polígonos; solo San Andrés y Providencia sin vecinos), FDR (Benjamini-Hochberg, q < 0,05).
+Ventanas de 52 semanas hasta 2026-07-27 (últimas vs previas). Población 2026 en ambas, para aislar el cambio en hechos. 94663 (Mapiripana, población 0 en el DANE, sin hechos) se excluye de los pesos.
+Resultado (1 121 municipios por delito): homicidio 1 emergente y 3 en disminución; hurto a personas 1 emergente y 3 persistentes; hurto a residencias 1 emergente; hurto de vehículos 4 emergentes y 1 persistente; hurto a comercio y lesiones, ninguno.
+Casos coherentes: Cota, Funza y Mosquera (Sabana de Occidente) en hurto a personas; Villa Rica, Puerto Tejada, Caloto, Guachené y Jamundí (norte del Cauca y sur del Valle) en hurto de vehículos; Briceño y Toledo (Antioquia) en homicidio.
+Limitaciones: la FDR es conservadora y las tasas tienen cola larga, por eso hay pocos puntos calientes y **ningún punto frío**. Un caso débil: Nariño (52480), hurto a personas "emergente" con solo 20 hechos.
+Se usó el Queen directo del MGN simplificado (~55 m): sin huecos relevantes. Mi primer intento de tolerancia con buffer fue un error de mi script y no hizo falta.
+Integración: `ingesta.yml` descarga el MGN solo si falta (caché `mgn-2018-v1`), corre anomalías y hotspots antes de validar; `validaciones.py` revisa categorías, rangos y cobertura.

@@ -81,6 +81,26 @@ def validar(data: str | None = None, hoy: date | None = None) -> list[str]:
         if d.groupby(["nivel", "cod", "delito"]).size().nunique() != 1:
             problemas.append("Predicciones: no todas las series tienen el mismo número de semanas.")
 
+    hot = base / "gold" / "hotspots.parquet"
+    if hot.exists():
+        h = con.execute(f"select * from '{hot.as_posix()}'").df()
+        if not h["categoria"].isin(["emergente", "persistente", "en_disminucion", "frio", "sin_patron"]).all():
+            problemas.append("Hotspots: categoría desconocida.")
+        if not h[["z_ult", "q_ult", "z_prev", "q_prev"]].apply(lambda c: c.between(-50, 50) if c.name.startswith("z") else c.between(0, 1)).all().all():
+            problemas.append("Hotspots: z o q fuera de rango.")
+        if h.groupby("delito").size().nunique() != 1 or h.groupby("delito").size().iloc[0] < 1000:
+            problemas.append("Hotspots: cobertura de municipios incompleta.")
+    anom = base / "gold" / "anomalias.parquet"
+    if anom.exists():
+        a = con.execute(f"select * from '{anom.as_posix()}'").df()
+        # el z se guarda con 2 decimales, por eso el margen de 0,01 sobre el umbral de 3
+        if (a["z"].abs() < 2.99).any() or a[["valor", "esperado", "z"]].isna().any().any():
+            problemas.append("Anomalías: filas bajo el umbral o con nulos.")
+        if (a["z"].abs() > 100).any():
+            problemas.append(f"Anomalías: puntajes inverosímiles (|z| máximo {a['z'].abs().max():.0f}); revisar la desviación de series casi todo ceros.")
+        if len(a) > 0.1 * max(len(con.execute(f"select * from '{(base / 'gold' / 'hechos_semana_mpio.parquet').as_posix()}'").df()), 1):
+            problemas.append("Anomalías: proporción excesiva de semanas atípicas.")
+
     if os.environ.get("FORZAR_FALLO") == "1":
         problemas.append("Fallo forzado (FORZAR_FALLO=1) para probar el flujo de alerta.")
     return problemas

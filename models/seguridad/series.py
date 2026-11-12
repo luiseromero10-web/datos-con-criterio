@@ -35,3 +35,8 @@ def semanal(data: Path = DATA) -> pd.DataFrame:
     claves = df[["delito", "cod_mpio", "cod_dpto"]].drop_duplicates()
     grid = claves.merge(pd.DataFrame({"ds": semanas}), how="cross")
     return grid.merge(df, on=["delito", "cod_mpio", "cod_dpto", "ds"], how="left").fillna({"y": 0.0})
+
+
+def ultima_semana_entrenamiento_fin(data: Path = DATA) -> pd.Timestamp:
+    """Alias legible: lunes de la última semana confiable (fin de las ventanas de análisis)."""
+    return ultima_semana_completa(data)
