@@ -17,7 +17,8 @@
   --senal: #9a4508;           /* ámbar oscuro para texto de alerta (contraste AA sobre papel y panel) */
   --senal-viva: #f59e0b;      /* ámbar vivo para marcas gráficas (puntos, contornos) */
   --map-nodata: #dfe6f0;
-  --map-line: #ffffff;
+  --map-line: #0b1f3a;          /* línea entre municipios: oscura sobre la rampa clara */
+  --map-line-opacity: 0.4;
   --map-casing: #0b1f3a;
   --grid: rgba(31, 69, 196, 0.045);
 }
@@ -35,7 +36,8 @@
     --senal: #f5b544;
     --senal-viva: #f5b544;
     --map-nodata: #13243b;
-    --map-line: #06101d;
+    --map-line: #7da0d6;          /* en oscuro, un azul medio que contrasta con ambos extremos de la rampa */
+    --map-line-opacity: 0.55;
     --map-casing: #06101d;
     --grid: rgba(134, 168, 255, 0.05);
   }
@@ -73,7 +75,7 @@ body {
 /* Titulares: Archivo expandida y pesada */
 .display { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 118%; font-weight: 800; letter-spacing: -0.015em; }
 /* Cifras grandes: misma familia, números tabulares */
-.cifra { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 112%; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.cifra { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 112%; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; line-height: 1; font-size: clamp(2.125rem, 1.4rem + 2vw, 3.25rem); }
 /* Etiquetas técnicas y números pequeños */
 .mono { font-family: var(--font-martian), ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 0.92em; }
 .eyebrow { font-family: var(--font-martian), monospace; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }

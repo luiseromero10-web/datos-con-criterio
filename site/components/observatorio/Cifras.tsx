@@ -13,7 +13,7 @@ function Cifra({ etiqueta, valor, nota }: { etiqueta: string; valor: string; not
     <div className="rule-top pt-3">
       <dt className="eyebrow">{etiqueta}</dt>
       <dd className="mt-1">
-        <span className="cifra text-3xl leading-none sm:text-4xl">{valor}</span>
+        <span className="cifra">{valor}</span>
         {nota && <span className="mt-1 block text-sm text-ink2">{nota}</span>}
       </dd>
     </div>

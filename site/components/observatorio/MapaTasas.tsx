@@ -18,6 +18,8 @@ type Props = {
 const RAMPA_CLARA = ["#eef4fb", "#c6dbf2", "#8db8e6", "#4f8fd6", "#2459b8", "#0b2a6b"];
 const RAMPA_OSCURA = ["#0d1b2e", "#163a66", "#22589c", "#3a7fd0", "#79b0f0", "#cfe4ff"];
 // Contornos de puntos calientes: halo (marino u oscuro) + línea encima, legible sobre cualquier tono de la rampa.
+// Línea entre municipios: fina al ver todo el país y más gruesa al acercarse.
+const ANCHO_BORDE = ["interpolate", ["linear"], ["zoom"], 3, 0.35, 5, 0.6, 7, 1, 10, 1.7];
 const ANCHO_CAT = ["match", ["feature-state", "cat"], "persistente", 2.4, "emergente", 2.6, "en_disminucion", 1.2, 0];
 const COLOR_CAT = ["match", ["feature-state", "cat"], "emergente", "#f59e0b", "#ffffff"];
 
@@ -85,7 +87,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
       m.on("load", () => {
         m!.addSource("mun", { type: "geojson", data: "/data/municipios.geojson", promoteId: "c" });
         m!.addLayer({ id: "mun-relleno", type: "fill", source: "mun", paint: { "fill-color": "#dfe6f0", "fill-opacity": 1 } });
-        m!.addLayer({ id: "mun-borde", type: "line", source: "mun", paint: { "line-color": "#ffffff", "line-width": 0.25, "line-opacity": 0.6 } });
+        m!.addLayer({ id: "mun-borde", type: "line", source: "mun", paint: { "line-color": "#0b1f3a", "line-width": ANCHO_BORDE as never, "line-opacity": 0.4 } });
         m!.addLayer({
           id: "mun-caliente-halo", type: "line", source: "mun",
           paint: { "line-width": ["case", ["==", ["coalesce", ["feature-state", "cat"], ""], ""], 0, 5], "line-color": "#0b1f3a" },
@@ -134,7 +136,8 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
     const stops: (number | string)[] = [-1, sinDato, 0, rampa[0]];
     cortes.forEach((c, i) => stops.push(c, rampa[Math.min(i + 1, rampa.length - 1)]));
     m.setPaintProperty("mun-relleno", "fill-color", ["interpolate", ["linear"], ["coalesce", ["feature-state", "v"], -1], ...stops] as never);
-    m.setPaintProperty("mun-borde", "line-color", cssVar("--map-line", "#ffffff"));
+    m.setPaintProperty("mun-borde", "line-color", cssVar("--map-line", "#0b1f3a"));
+    m.setPaintProperty("mun-borde", "line-opacity", parseFloat(cssVar("--map-line-opacity", "0.4")));
     m.setPaintProperty("mun-caliente-halo", "line-color", cssVar("--map-casing", "#0b1f3a"));
     m.setPaintProperty("fondo", "background-color", cssVar("--paper-2", "#e9f0f9"));
     const cat = new Map(cambios.map((c) => [c.cod_mpio, c.categoria]));
