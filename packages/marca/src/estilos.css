@@ -1,7 +1,5 @@
-@import "tailwindcss";
-
 /*
-  Identidad «Datos con Criterio» (común a todas las apps; se extraerá a packages/marca).
+  Identidad «Datos con Criterio» (fuente única; cada app la importa desde @dcc/marca/estilos.css).
   Concepto: plano técnico. Papel blanco azulado con retícula muy tenue, tinta marina, cobalto como color de marca,
   cerúleo para lo pronosticado y un único color de señal (ámbar) reservado para alertas.
 */

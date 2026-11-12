@@ -2,7 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as MapaMl, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { ANCHO_CONTORNO, COLOR_CONTORNO, COLOR_SELECCION, RAMPA_CLARA, RAMPA_OSCURA } from "@dcc/marca/mapa";
 import { cssVar, useTema } from "@/lib/useTema";
+import { ruta } from "@/lib/ruta";
 import { decimal, entero } from "@/lib/format";
 import type { Cambio, Muni } from "@/lib/datos";
 
@@ -15,13 +17,11 @@ type Props = {
   etiquetaPeriodo: string;
 };
 
-const RAMPA_CLARA = ["#eef4fb", "#c6dbf2", "#8db8e6", "#4f8fd6", "#2459b8", "#0b2a6b"];
-const RAMPA_OSCURA = ["#0d1b2e", "#163a66", "#22589c", "#3a7fd0", "#79b0f0", "#cfe4ff"];
 // Contornos de puntos calientes: halo (marino u oscuro) + línea encima, legible sobre cualquier tono de la rampa.
 // Línea entre municipios: fina al ver todo el país y más gruesa al acercarse.
 const ANCHO_BORDE = ["interpolate", ["linear"], ["zoom"], 3, 0.35, 5, 0.6, 7, 1, 10, 1.7];
-const ANCHO_CAT = ["match", ["feature-state", "cat"], "persistente", 2.4, "emergente", 2.6, "en_disminucion", 1.2, 0];
-const COLOR_CAT = ["match", ["feature-state", "cat"], "emergente", "#f59e0b", "#ffffff"];
+const ANCHO_CAT = ["match", ["feature-state", "cat"], "persistente", ANCHO_CONTORNO.persistente, "emergente", ANCHO_CONTORNO.emergente, "en_disminucion", ANCHO_CONTORNO.en_disminucion, 0];
+const COLOR_CAT = ["match", ["feature-state", "cat"], "emergente", COLOR_CONTORNO.emergente, COLOR_CONTORNO.persistente];
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -68,7 +68,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
     let m: MapaMl | undefined;
     (async () => {
       const ml = await import("maplibre-gl");
-      ml.setWorkerUrl("/vendor/maplibre/maplibre-gl-worker.mjs");
+      ml.setWorkerUrl(ruta("/vendor/maplibre/maplibre-gl-worker.mjs"));
       if (!vivo || !contenedor.current) return;
       m = new ml.Map({
         container: contenedor.current,
@@ -85,7 +85,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
       m.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
       popup.current = new ml.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
       m.on("load", () => {
-        m!.addSource("mun", { type: "geojson", data: "/data/municipios.geojson", promoteId: "c" });
+        m!.addSource("mun", { type: "geojson", data: ruta("/data/municipios.geojson"), promoteId: "c" });
         m!.addLayer({ id: "mun-relleno", type: "fill", source: "mun", paint: { "fill-color": "#dfe6f0", "fill-opacity": 1 } });
         m!.addLayer({ id: "mun-borde", type: "line", source: "mun", paint: { "line-color": "#0b1f3a", "line-width": ANCHO_BORDE as never, "line-opacity": 0.4 } });
         m!.addLayer({
@@ -93,7 +93,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
           paint: { "line-width": ["case", ["==", ["coalesce", ["feature-state", "cat"], ""], ""], 0, 5], "line-color": "#0b1f3a" },
         });
         m!.addLayer({ id: "mun-caliente", type: "line", source: "mun", paint: { "line-width": ANCHO_CAT as never, "line-color": COLOR_CAT as never } });
-        m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": "#22d3ee" } });
+        m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": COLOR_SELECCION } });
         m!.on("click", "mun-relleno", (e) => {
           const c = e.features?.[0]?.properties?.c as string | undefined;
           if (c) cbSel.current(c);
@@ -190,9 +190,9 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
         </div>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink2" aria-label="Contornos de puntos calientes">
           {[
-            ["persistente", "#ffffff", 3],
-            ["emergente", "#f59e0b", 3],
-            ["en disminución", "#ffffff", 1],
+            ["persistente", COLOR_CONTORNO.persistente, 3],
+            ["emergente", COLOR_CONTORNO.emergente, 3],
+            ["en disminución", COLOR_CONTORNO.en_disminucion, 1],
           ].map(([t, c, h]) => (
             <li key={t as string}>
               <span className="mr-1.5 inline-block w-6 align-middle" style={{ background: c as string, height: (h as number) + 4, border: "2px solid var(--map-casing)" }} />

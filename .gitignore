@@ -6,12 +6,12 @@ data/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
-site/node_modules/
-site/.next/
+node_modules/
+.next/
 .vercel/
 .wrangler/
 .claude/
-site/public/vendor/
+apps/*/public/vendor/
 
 # la geometría del mapa sí va en el repo (la regla data/ es para los datos descargados)
-!site/public/data/
+!apps/seguridad/public/data/

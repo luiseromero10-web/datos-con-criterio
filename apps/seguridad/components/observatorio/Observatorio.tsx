@@ -222,7 +222,7 @@ export default function Observatorio() {
         </p>
         <p className="mt-1 text-sm text-ink2">
           Las cifras son denuncias registradas, no delitos reales. Lea los{" "}
-          <Link className="underline underline-offset-4" href="/casos/observatorio-seguridad/metodologia">límites y la metodología</Link>.{" "}
+          <Link className="underline underline-offset-4" href="/metodologia">límites y la metodología</Link>.{" "}
           <a className="underline underline-offset-4" href="https://github.com/luiseromero10-web/datos-con-criterio">Código fuente</a>.
         </p>
         <p className="sr-only">{DELITOS.length} delitos disponibles.</p>

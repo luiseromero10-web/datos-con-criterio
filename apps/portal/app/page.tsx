@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 const PASOS = ["Libro", "Marco", "Datos", "Hallazgo", "Recomendación"];
 
 export default function Inicio() {
@@ -28,8 +26,8 @@ export default function Inicio() {
           <h2 id="casos" className="display mt-1 text-3xl font-semibold">Para empezar</h2>
         </div>
 
-        <Link
-          href="/casos/observatorio-seguridad"
+        <a
+          href="/seguridad"
           className="group mt-6 grid gap-4 border border-ink p-5 transition-colors hover:bg-paper2 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-8 sm:p-7"
         >
           <span className="display text-5xl font-semibold leading-none sm:text-6xl">01</span>
@@ -40,7 +38,7 @@ export default function Inicio() {
             </span>
           </span>
           <span className="mono text-sm underline-offset-4 group-hover:underline">Abrir el caso →</span>
-        </Link>
+        </a>
         <p className="mt-4 text-sm text-ink2">Más casos en preparación.</p>
       </section>
 

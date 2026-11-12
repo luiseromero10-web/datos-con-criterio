@@ -146,3 +146,26 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 ## 2026-11-12 · D19 · Ajustes visuales tras revisión del autor
 - Líneas entre municipios: eran blancas de 0,25 px con 60 % de opacidad y se perdían sobre los tonos claros de la rampa (y en oscuro casi no se veían). Ahora son oscuras en el tema claro (`#0b1f3a`, 40 %) y azul medio en el oscuro (`#7da0d6`, 55 %), con grosor que crece con el zoom (0,35 px a nivel país, 1,7 px muy cerca).
 - Cifras clave: en la primera versión se pintaban en una tipografía monoespaciada ancha; al pasar a Archivo quedaron más angostas y livianas aunque el tamaño en código era el mismo (36 px). Ahora tienen tamaño explícito y proporcional al ancho: de 34 px en móvil a 52 px en escritorio.
+
+
+## 2026-11-12 · D20 · P1: monorepo y multi-zonas (local)
+**Estructura:** `apps/portal` (zona por defecto: portada, artículos, «Sobre mí», privacidad), `apps/seguridad` (el observatorio, con `basePath: "/seguridad"`), `packages/marca` (`@dcc/marca`: identidad común). Espacios de trabajo de npm con un solo `package-lock.json` en la raíz. `site/` se movió con `git mv` y conserva su historial.
+**Zonas:** el portal reescribe `/seguridad` y `/seguridad/:path*` hacia `ZONA_SEGURIDAD_URL` (por defecto `http://localhost:3100`). Con `basePath`, los recursos de la zona quedan en `/seguridad/_next/…` y viajan por la misma regla, así que no hizo falta `assetPrefix`. Cada app nueva = un proyecto de Vercel + un par de reglas en el portal.
+**Rutas estáticas:** `fetch()` y las URL de MapLibre no reciben el `basePath` solas; se arman con `apps/seguridad/lib/ruta.ts` (`/seguridad/data/municipios.geojson`, `/seguridad/vendor/maplibre/…`). `scripts/copiar-worker.mjs` busca `maplibre-gl` hacia arriba en `node_modules`, porque npm sube las dependencias a la raíz.
+**Marca única (`packages/marca`):** `estilos.css` (tokens claro/oscuro, utilidades), `fuentes.ts` (Archivo y Martian Mono con `next/font`, que funciona desde un paquete), `componentes` (cabecera y pie, con `<a>` entre zonas), `mapa.ts` (rampa y colores de contorno). Las apps importan `@dcc/marca/estilos.css` y declaran `@source` para que Tailwind escanee el paquete. Ninguna app define colores ni fuentes propios.
+**Cambios de ruta:** el observatorio pasó de `/casos/observatorio-seguridad` a `/seguridad`, y la metodología a `/seguridad/metodologia`. Cabecera común: Observatorio, Artículos, Sobre mí. Las rutas antiguas ya no existen (nada estaba publicado).
+**Portal:** `/privacidad` es un **borrador** que describe cómo se operará cuando estén activas la analítica, los comentarios y el feedback (hoy no se recoge nada); `/articulos` está vacío; `/sobre-mi` sigue como espacio reservado.
+**CI:** `ci.yml` con matriz `[portal, seguridad]`: `npm ci` en la raíz, lint, build y tipos por app (el build va antes porque genera los tipos de Next).
+
+**Verificación (local):**
+- Ambas apps en marcha (portal 3000, zona 3100): `localhost:3000/seguridad` muestra el observatorio completo con mapa y gráfico funcionando; las 9 rutas probadas responden bien (portada, 4 páginas del portal, observatorio, metodología, GeoJSON y los dos archivos del worker, estos con el tipo de contenido correcto).
+- Builds de producción de las dos apps, `tsc` y `eslint` en ambas, `ruff` y las 33 pruebas de Python: en verde. `npm ci --dry-run` en verde.
+- Lighthouse móvil (modo desarrollo, a través del portal), las 6 páginas: accesibilidad 100, buenas prácticas 100, SEO 100.
+- Identidad: tokens (`--paper`, `--ink`, `--accent`, `--forecast`, `--senal`, `--rule`), fuentes (Archivo, Martian Mono), titular (118 %, peso 800) y cabecera idénticos en el portal y en el observatorio.
+
+**No verificado / límites:**
+- La navegación entre zonas es una carga completa (`<a>`), como indica la documentación de Next.
+- En desarrollo, el HMR de la zona no atraviesa el portal; para editar una app, ábrala directamente en su puerto (`localhost:3100/seguridad`). Los enlaces a otra zona (p. ej. «Sobre mí» desde la zona) solo funcionan pasando por el portal, no en `localhost:3100`.
+- `npm audit` marca 7 avisos moderados en `minimatch`, dependencia transitiva de las herramientas de desarrollo; no llega a lo que se publica.
+- Rendimiento medido solo en modo desarrollo; no se midió el build de producción servido por el portal.
+- Las pruebas de carga diferida (mapa y gráfico) requieren desplazamiento real de la página; con `scrollIntoView` programático el navegador de pruebas no las activa.

@@ -16,24 +16,23 @@ jobs:
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run pytest -q
-  sitio:
+  apps:
+    # Una app por proyecto de Vercel: cada una se revisa y se compila por separado.
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: site
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [portal, seguridad]
     steps:
       - uses: actions/checkout@v4
-      - name: Detectar sitio
-        id: sitio
-        working-directory: .
-        run: echo "existe=$([ -f site/package.json ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
-        if: steps.sitio.outputs.existe == 'true'
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: site/package-lock.json
-      - if: steps.sitio.outputs.existe == 'true'
-        run: npm ci
-      - if: steps.sitio.outputs.existe == 'true'
-        run: npm run build
+          cache-dependency-path: package-lock.json
+      # Un solo npm ci en la raíz: instala todos los espacios de trabajo, incluido el paquete común @dcc/marca.
+      - run: npm ci
+      - run: npm run lint -w apps/${{ matrix.app }}
+      # El build genera los tipos de Next que necesita el comprobador, por eso va antes.
+      - run: npm run build -w apps/${{ matrix.app }}
+      - run: npm run tipos -w apps/${{ matrix.app }}

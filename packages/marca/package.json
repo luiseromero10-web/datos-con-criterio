@@ -1,0 +1,17 @@
+{
+  "name": "@dcc/marca",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Identidad visual común de Datos con Criterio: tokens, tipografía, cabecera, pie y rampa del mapa. Ninguna app define colores ni fuentes propios.",
+  "type": "module",
+  "exports": {
+    "./estilos.css": "./src/estilos.css",
+    "./componentes": "./src/componentes/index.ts",
+    "./fuentes": "./src/fuentes.ts",
+    "./mapa": "./src/mapa.ts"
+  },
+  "peerDependencies": {
+    "next": ">=16",
+    "react": ">=19"
+  }
+}
