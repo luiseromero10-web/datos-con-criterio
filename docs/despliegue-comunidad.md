@@ -1,6 +1,6 @@
 # Puesta en marcha: comentarios, feedback y eventos (P3)
 
-**Estado:** todo está escrito y probado en local. **Nada se ha aplicado en Supabase** ni desplegado. Cada paso de abajo que sale del equipo necesita la confirmación del autor, una por una.
+**Estado:** todo está escrito y probado en local. **Paso 1 (migración) aplicado el 2026-11-12 en `romi-app`** y verificado (ver D23 en `docs/decisiones.md`). Falta desplegar la función. Cada paso de abajo que sale del equipo necesita la confirmación del autor, una por una.
 
 Proyecto de destino: `romi-app` (ref `emkinfqdwjtzkkyabmyb`, región sa-east-1), compartido con ROMI y Lector. Solo se crean objetos con prefijo `dcc_` y la función `dcc-comunidad`.
 

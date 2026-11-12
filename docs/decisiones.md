@@ -221,3 +221,15 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 
 **No verificado:** nada contra el Supabase real (la migración y la función no se han aplicado ni desplegado); Turnstile real; el flujo de punta a punta (comentario → aprobación → aparición); que la función arranque en Deno (se probó su lógica en Node, no el `Deno.serve` ni la importación de `supabase-js`); el límite real de 429 contra la base real; el formulario con el widget real de Turnstile.
 **Pendiente (cada uno con confirmación y, donde se indica, con acciones suyas):** aplicar la migración, crear el widget y cargar los secretos, desplegar la función, variables de entorno y pruebas de humo (`docs/despliegue-comunidad.md`).
+
+
+## 2026-11-12 · D23 · P3: migracion dcc_comunidad aplicada en romi-app
+**Hecho (con confirmacion del autor):** `apply_migration` con el contenido exacto de `supabase/migrations/20261112000000_dcc_comunidad.sql`. Resultado: success.
+
+**Verificacion contra la base real:**
+- Tablas public 19 -> 23 (4 `dcc_`, las 4 con RLS); funciones 8 -> 11 (3 `dcc_`, ninguna SECURITY DEFINER); politicas 38 -> 42; indices 31 -> 37.
+- Permisos: `anon` y `authenticated` NO pueden leer/escribir las tablas ni ejecutar las funciones `dcc_`; `service_role` si.
+- Datos ajenos intactos: lector_books 9, lector_reading_progress 5, nl_records 54 (igual que antes).
+- Analizador de seguridad: 15 avisos, los mismos de la linea base (ninguno nuevo). Rendimiento: 21 -> 23; los 2 nuevos son `unused_index` (INFO) de `dcc_comentarios`, esperado en tabla nueva; ningun WARN nuevo.
+
+**Pendiente:** widget de Turnstile y 3 secretos (autor), desplegar `dcc-comunidad`, pruebas de humo, variables de entorno.
