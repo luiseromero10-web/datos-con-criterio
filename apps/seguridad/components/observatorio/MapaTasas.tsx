@@ -1,19 +1,25 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Map as MapaMl, Popup } from "maplibre-gl";
+import type { GeoJSONSource, Map as MapaMl, Popup } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { ANCHO_CONTORNO, COLOR_CONTORNO, COLOR_SELECCION, RAMPA_CLARA, RAMPA_OSCURA } from "@dcc/marca/mapa";
 import { cssVar, useTema } from "@/lib/useTema";
 import { ruta } from "@/lib/ruta";
 import { decimal, entero } from "@/lib/format";
 import type { Cambio, Muni } from "@/lib/datos";
+import type { DelitoId } from "@/lib/delitos";
+import { alturaExtrusion, datosClave, ladoMayorM, perfilPorDelito, type ConteosPorDelito } from "@/lib/perfil";
+import PerfilMunicipio from "./PerfilMunicipio";
 
 type Props = {
   conteos: Record<string, number>;
   munis: Muni[];
   cambios: Cambio[];
+  delito: DelitoId;
+  conteosPorDelito: ConteosPorDelito;
   seleccionado: string;
   onSeleccion: (cod: string) => void;
+  onCerrar: () => void;
   etiquetaPeriodo: string;
 };
 
@@ -25,13 +31,34 @@ const COLOR_CAT = ["match", ["feature-state", "cat"], "emergente", COLOR_CONTORN
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+const sinMovimiento = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Caja (oeste, sur, este, norte) de un municipio dentro del GeoJSON. */
+function cajaDe(datos: GeoJSON.GeoJSON, cod: string): [number, number, number, number] | null {
+  if (datos.type !== "FeatureCollection") return null;
+  const f = datos.features.find((x) => x.properties?.c === cod);
+  if (!f || (f.geometry.type !== "Polygon" && f.geometry.type !== "MultiPolygon")) return null;
+  let o = 180, s = 90, e = -180, n = -90;
+  const rec = (a: unknown): void => {
+    if (Array.isArray(a) && typeof a[0] === "number") {
+      const [x, y] = a as number[];
+      if (x < o) o = x;
+      if (x > e) e = x;
+      if (y < s) s = y;
+      if (y > n) n = y;
+    } else if (Array.isArray(a)) a.forEach(rec);
+  };
+  rec(f.geometry.coordinates);
+  return o <= e ? [o, s, e, n] : null;
+}
+
 function cuantil(ordenado: number[], q: number): number {
   if (ordenado.length === 0) return 0;
   const i = Math.min(ordenado.length - 1, Math.max(0, Math.floor(q * (ordenado.length - 1))));
   return ordenado[i];
 }
 
-export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSeleccion, etiquetaPeriodo }: Props) {
+export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorDelito, seleccionado, onSeleccion, onCerrar, etiquetaPeriodo }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaMl | null>(null);
   const popup = useRef<Popup | null>(null);
@@ -94,6 +121,11 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
         });
         m!.addLayer({ id: "mun-caliente", type: "line", source: "mun", paint: { "line-width": ANCHO_CAT as never, "line-color": COLOR_CAT as never } });
         m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": COLOR_SELECCION } });
+        // municipio seleccionado «levantado» del mapa; el filtro y la altura se fijan al seleccionar
+        m!.addLayer({
+          id: "mun-3d", type: "fill-extrusion", source: "mun", filter: ["==", ["get", "c"], "__ninguno__"],
+          paint: { "fill-extrusion-color": "#2459b8", "fill-extrusion-height": 0, "fill-extrusion-base": 0, "fill-extrusion-opacity": 0.96 },
+        });
         m!.on("click", "mun-relleno", (e) => {
           const c = e.features?.[0]?.properties?.c as string | undefined;
           if (c) cbSel.current(c);
@@ -136,6 +168,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
     const stops: (number | string)[] = [-1, sinDato, 0, rampa[0]];
     cortes.forEach((c, i) => stops.push(c, rampa[Math.min(i + 1, rampa.length - 1)]));
     m.setPaintProperty("mun-relleno", "fill-color", ["interpolate", ["linear"], ["coalesce", ["feature-state", "v"], -1], ...stops] as never);
+    m.setPaintProperty("mun-3d", "fill-extrusion-color", ["interpolate", ["linear"], ["coalesce", ["feature-state", "v"], -1], ...stops] as never);
     m.setPaintProperty("mun-borde", "line-color", cssVar("--map-line", "#0b1f3a"));
     m.setPaintProperty("mun-borde", "line-opacity", parseFloat(cssVar("--map-line-opacity", "0.4")));
     m.setPaintProperty("mun-caliente-halo", "line-color", cssVar("--map-casing", "#0b1f3a"));
@@ -148,15 +181,61 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
     }
   }, [listo, tasas, cortes, rampa, cambios, munis, tema]);
 
-  // 3) selección
+  // 3) selección: borde, atenuado del resto, extrusión 3D animada y vuelo de cámara
   const anterior = useRef<string>("");
+  const animacion = useRef(0);
+  const cajas = useRef<GeoJSON.GeoJSON | null>(null);
+  const ejes = useMemo(() => (seleccionado ? perfilPorDelito(seleccionado, munis, conteosPorDelito) : null), [seleccionado, munis, conteosPorDelito]);
+  const pctTasa = ejes?.find((e) => e.id === delito)?.valor ?? 0;
   useEffect(() => {
     const m = mapa.current;
     if (!m || !listo) return;
     if (anterior.current) m.setFeatureState({ source: "mun", id: anterior.current }, { sel: false });
     if (seleccionado) m.setFeatureState({ source: "mun", id: seleccionado }, { sel: true });
+    const cambio = anterior.current !== seleccionado;
     anterior.current = seleccionado;
-  }, [seleccionado, listo]);
+    m.setPaintProperty("mun-relleno", "fill-opacity", seleccionado ? (["case", ["boolean", ["feature-state", "sel"], false], 1, 0.42] as never) : 1);
+    m.setFilter("mun-3d", ["==", ["get", "c"], seleccionado || "__ninguno__"]);
+
+    let cancelado = false;
+    cancelAnimationFrame(animacion.current);
+    if (!seleccionado) {
+      m.setPaintProperty("mun-3d", "fill-extrusion-height", 0);
+      if (cambio) m.easeTo({ pitch: 0, duration: sinMovimiento() ? 0 : 900 });
+      return;
+    }
+    (async () => {
+      cajas.current ??= await (m.getSource("mun") as GeoJSONSource).getData();
+      const c = cajas.current ? cajaDe(cajas.current, seleccionado) : null;
+      if (cancelado || !c) return;
+      // la altura sube desde cero hasta la que corresponde a su tasa (sin animación si la persona pide menos movimiento)
+      const meta = alturaExtrusion(pctTasa, ladoMayorM(c));
+      if (sinMovimiento() || !cambio) {
+        m.setPaintProperty("mun-3d", "fill-extrusion-height", meta);
+      } else {
+        m.setPaintProperty("mun-3d", "fill-extrusion-height", 0);
+        const t0 = performance.now();
+        const paso = (t: number) => {
+          const k = Math.min(1, (t - t0 - 600) / 1100); // empieza cuando la cámara ya va llegando
+          m.setPaintProperty("mun-3d", "fill-extrusion-height", meta * (1 - Math.pow(1 - Math.max(0, k), 3)));
+          if (k < 1) animacion.current = requestAnimationFrame(paso);
+        };
+        animacion.current = requestAnimationFrame(paso);
+      }
+      if (!cambio) return;
+      const ancho = contenedor.current?.clientWidth ?? 0;
+      m.fitBounds([[c[0], c[1]], [c[2], c[3]]], {
+        padding: { top: 50, bottom: 40, right: 40, left: ancho >= 640 ? 360 : 40 },
+        maxZoom: 9.2,
+        pitch: 56,
+        duration: sinMovimiento() ? 0 : 1700,
+      });
+    })();
+    return () => {
+      cancelado = true;
+      cancelAnimationFrame(animacion.current);
+    };
+  }, [seleccionado, listo, ejes, pctTasa]);
 
   const leyenda = [0, ...cortes];
   return (
@@ -168,6 +247,17 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
           aria-label="Mapa de municipios de Colombia coloreados por tasa de denuncias. La misma información está en las tablas y en los filtros."
           className="h-[26rem] w-full border border-rule sm:h-[34rem]"
         />
+        {ejes && seleccionado && porCod.get(seleccionado) && (
+          <PerfilMunicipio
+            municipio={porCod.get(seleccionado)!.municipio}
+            departamento={porCod.get(seleccionado)!.departamento}
+            ejes={ejes}
+            extras={datosClave(seleccionado, cambios)}
+            delito={delito}
+            categoria={cambios.find((c) => c.cod_mpio === seleccionado)?.categoria ?? ""}
+            onCerrar={onCerrar}
+          />
+        )}
         {!listo && (
           <div className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink2" aria-live="polite">
             Cargando mapa…

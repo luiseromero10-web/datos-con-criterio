@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ArticulosRelacionados, Comentarios, FormularioFeedback, track } from "@dcc/comunidad";
 import Filtros from "./Filtros";
@@ -8,6 +8,7 @@ import Perezoso from "@/components/Perezoso";
 import Cifras, { type CifrasDatos } from "./Cifras";
 import { TablaAnomalias, TablaCambios } from "./Tablas";
 import { DELITOS, nombreDelito, type DelitoId } from "@/lib/delitos";
+import type { ConteosPorDelito } from "@/lib/perfil";
 import { fechaLarga } from "@/lib/format";
 import {
   anomaliasDe, anomaliasRecientes, cambiosHotspots, cargarMeta, cargarMunicipios, conteosPorMunicipio, periodosDisponibles,
@@ -147,6 +148,28 @@ export default function Observatorio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta, delito, claveAlcance]);
 
+  // araña del municipio: conteos de todos los delitos en el periodo elegido; se cargan solo cuando hay un municipio seleccionado
+  const [conteosDelitos, setConteosDelitos] = useState<ConteosPorDelito>({});
+  const periodoDelitos = useRef("");
+  useEffect(() => {
+    if (!mpio || !periodo || munis.length === 0) return;
+    if (periodoDelitos.current === periodo.id) return;
+    periodoDelitos.current = periodo.id;
+    let vivo = true;
+    setConteosDelitos({});
+    Promise.all(DELITOS.map(async (d) => [d.id, await conteosPorMunicipio(d.id, periodo.desde, periodo.hasta)] as const))
+      .then((f) => vivo && setConteosDelitos(Object.fromEntries(f)))
+      .catch(() => {
+        periodoDelitos.current = "";
+        track("error_datos", "perfil");
+      });
+    return () => {
+      vivo = false;
+      periodoDelitos.current = "";
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mpio !== "", periodo?.id, munis.length]);
+
   const nombreAlcance = useMemo(() => {
     if (alcance.tipo === "mpio") {
       const m = munis.find((x) => x.cod_mpio === alcance.cod);
@@ -191,7 +214,7 @@ export default function Observatorio() {
           <div className="grid h-[26rem] place-items-center border border-rule text-sm text-ink2 sm:h-[34rem]" aria-busy="true">Cargando datos…</div>
         ) : (
           <Perezoso alto="h-[26rem] sm:h-[34rem]">
-            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} seleccionado={mpio} onSeleccion={(c) => { track("clic_mapa"); seleccionar(c); }} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
+            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} delito={delito} conteosPorDelito={conteosDelitos} seleccionado={mpio} onSeleccion={(c) => { track("clic_mapa"); seleccionar(c); }} onCerrar={() => setMpio("")} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
           </Perezoso>
         )}
         <p className="mt-3 max-w-prose text-sm text-ink2">
