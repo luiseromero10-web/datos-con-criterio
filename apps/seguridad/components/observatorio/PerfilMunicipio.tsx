@@ -105,7 +105,8 @@ export default function PerfilMunicipio({ municipio, departamento, ejes, extras,
   }, [ejes, municipio, tema]);
 
   return (
-    <aside
+    <div
+      role="group"
       aria-label={`Perfil de ${municipio}`}
       className="panel border border-rule bg-[var(--paper)] p-4 shadow-lg sm:absolute sm:left-3 sm:top-3 sm:z-10 sm:max-h-[calc(100%-1.5rem)] sm:w-80 sm:max-w-[calc(100%-1.5rem)] sm:overflow-y-auto sm:bg-[color-mix(in_srgb,var(--paper)_92%,transparent)] sm:backdrop-blur"
     >
@@ -144,16 +145,18 @@ export default function PerfilMunicipio({ municipio, departamento, ejes, extras,
         ))}
       </dl>
       {extras.length > 0 && (
-        <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-rule pt-3 text-sm">
-          <dt className="col-span-2 eyebrow">{delito === "todos" ? "Todos los delitos" : "En el delito elegido"}</dt>
+        <div className="mt-3 border-t border-rule pt-3">
+          <p className="eyebrow mb-1">{delito === "todos" ? "Todos los delitos" : "En el delito elegido"}</p>
+          <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-sm">
           {extras.map((x) => (
             <div key={x.etiqueta} className="contents">
               <dt className="text-ink2">{x.etiqueta}</dt>
               <dd className="mono text-right text-xs">{x.valor}</dd>
             </div>
           ))}
-        </dl>
+          </dl>
+        </div>
       )}
-    </aside>
+    </div>
   );
 }

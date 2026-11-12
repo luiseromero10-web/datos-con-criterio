@@ -82,7 +82,8 @@ export default function CompararMunicipios({ a, b, distanciaKm, onSalir, onCambi
   const listo = a.ejes.length >= 3 && b.ejes.length >= 3;
   const frases = listo ? fraseComparacion(a.nombre, b.nombre, a.ejes, b.ejes) : [];
   return (
-    <aside
+    <div
+      role="group"
       aria-label={`Comparación de ${a.nombre} y ${b.nombre}`}
       className="panel border border-rule bg-[var(--paper)] p-4 shadow-lg sm:absolute sm:left-3 sm:top-3 sm:z-10 sm:max-h-[calc(100%-1.5rem)] sm:w-[23rem] sm:max-w-[calc(100%-1.5rem)] sm:overflow-y-auto sm:bg-[color-mix(in_srgb,var(--paper)_94%,transparent)] sm:backdrop-blur"
     >
@@ -114,8 +115,8 @@ export default function CompararMunicipios({ a, b, distanciaKm, onSalir, onCambi
           <thead>
             <tr className="text-xs text-ink2">
               <th scope="col" className="text-left font-normal">Delito</th>
-              <th scope="col" className="text-right font-normal" style={{ color: COLOR_A }}>{a.nombre}</th>
-              <th scope="col" className="text-right font-normal" style={{ color: COLOR_B }}>{b.nombre}</th>
+              <th scope="col" className="border-b-4 text-right font-normal text-ink" style={{ borderColor: COLOR_A }}>{a.nombre}</th>
+              <th scope="col" className="border-b-4 text-right font-normal text-ink" style={{ borderColor: COLOR_B }}>{b.nombre}</th>
             </tr>
           </thead>
           <tbody className="mono text-xs">
@@ -136,6 +137,6 @@ export default function CompararMunicipios({ a, b, distanciaKm, onSalir, onCambi
       <button type="button" onClick={onCambiarB} className="mt-3 min-h-11 w-full border border-ink px-3 font-medium hover:bg-paper2">
         Cambiar el segundo municipio
       </button>
-    </aside>
+    </div>
   );
 }

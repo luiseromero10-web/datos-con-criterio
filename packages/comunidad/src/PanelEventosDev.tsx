@@ -49,7 +49,7 @@ export default function PanelEventosDev() {
             </ul>
           </div>
         )}
-        <div role="log" aria-label="Registro de eventos" className="max-h-40 overflow-y-auto overflow-x-hidden [overflow-wrap:anywhere]">
+        <div role="log" tabIndex={0} aria-label="Registro de eventos" className="max-h-40 overflow-y-auto overflow-x-hidden [overflow-wrap:anywhere]">
           <p className="text-ink2">Registro (más reciente primero)</p>
           {recientes.length === 0 ? (
             <p className="text-ink2">Aún no hay eventos. Cambie un filtro o haga clic en el mapa.</p>
