@@ -4,7 +4,8 @@
   "description": "Plataforma Datos con Criterio: portal y apps independientes (una por proyecto de Vercel) con identidad común.",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "supabase"
   ],
   "scripts": {
     "dev:portal": "npm run dev -w apps/portal",

@@ -35,3 +35,7 @@ En desarrollo, una esquina de cada app muestra el panel «Eventos · simulación
 | `NEXT_PUBLIC_CF_BEACON_TOKEN` | identificador público de Cloudflare Web Analytics (visitas) |
 
 `npm test` corre las pruebas de la analítica. El contrato de los eventos está en `docs/decisiones.md` (D21).
+
+### Comentarios, feedback y eventos (`supabase/`)
+
+La migración, la función `dcc-comunidad` y sus pruebas están en `supabase/`; los formularios, en `packages/comunidad`. `npm test` corre todo, incluida la migración contra un Postgres local (PGlite), sin tocar el proyecto real. Cómo ponerlo en marcha, paso a paso y con quién hace qué: [docs/despliegue-comunidad.md](docs/despliegue-comunidad.md).

@@ -308,7 +308,7 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - el feedback no se puede leer desde fuera;
   - un envío sin Turnstile o con el campo trampa lleno se rechaza;
   - el sexto envío del día desde el mismo origen se rechaza;
-  - `get_advisors` (seguridad) no reporta avisos nuevos frente a la línea base de 15 avisos de la sección 1. No se modifica nada de ROMI aunque reporte otros;
+  - `get_advisors` (seguridad) no reporta avisos nuevos frente a la línea base de 15 avisos de la sección 1, y el de rendimiento ningún WARN nuevo frente a la línea base de 21 (los índices nuevos pueden figurar como `unused_index`, nivel INFO, hasta que tengan uso). No se modifica nada de ROMI aunque reporte otros;
   - con la función apagada o el proyecto pausado, la app sigue funcionando: el bloque de comentarios muestra «no disponible por ahora», `track()` no hace nada y no aparecen errores en la consola.
 
 ### P4 — Artículos
@@ -361,5 +361,5 @@ El único costo previsto sigue siendo el dominio.
 
 ## 7. Estado
 
-- [x] P0 (verificada 2026-11-12; falta la validación del autor de las decisiones 1, 2, 3 y 5) · [x] P1 (local, verificada 2026-11-12) · [x] P2 (local, en simulación; verificada 2026-11-12) · [ ] P3 · [ ] P4 · [ ] P5
+- [x] P0 (verificada 2026-11-12; falta la validación del autor de las decisiones 1, 2, 3 y 5) · [x] P1 (local, verificada 2026-11-12) · [x] P2 (local, en simulación; verificada 2026-11-12) · [~] P3 (escrito y probado en local; falta aplicar la migración, desplegar la función y probar de punta a punta) · [ ] P4 · [ ] P5
 - Identidad visual (2.8): aplicada en el sitio local, pendiente de validación del autor.

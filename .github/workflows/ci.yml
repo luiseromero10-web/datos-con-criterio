@@ -49,3 +49,5 @@ jobs:
       - run: npm ci
       - run: npm run tipos -w packages/comunidad
       - run: npm run test -w packages/comunidad
+      # Migración contra un Postgres local (PGlite) y la lógica de la función dcc-comunidad. No toca ningún proyecto real.
+      - run: npm run test -w supabase

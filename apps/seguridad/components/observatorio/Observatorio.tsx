@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { track } from "@dcc/comunidad";
+import { Comentarios, FormularioFeedback, track } from "@dcc/comunidad";
 import Filtros from "./Filtros";
 import Perezoso from "@/components/Perezoso";
 import Cifras, { type CifrasDatos } from "./Cifras";
@@ -24,12 +24,14 @@ const SerieTiempo = dynamic(() => import("./SerieTiempo"), {
   loading: () => <div className="grid h-[22rem] place-items-center border border-rule text-sm text-ink2 sm:h-[26rem]">Cargando gráfico…</div>,
 });
 
-function Seccion({ numero, titulo, children, id }: { numero: string; titulo: string; children: React.ReactNode; id?: string }) {
+function Seccion({ numero, titulo, children, id }: { numero: string; titulo: string; children: React.ReactNode; id: string }) {
+  // El identificador del título debe ser una sola palabra: con espacios, aria-labelledby lo leería como varias referencias.
+  const idTitulo = `titulo-${id}`;
   return (
-    <section id={id} className="mt-14" aria-labelledby={`h-${numero}`}>
+    <section id={id} className="mt-14" aria-labelledby={idTitulo}>
       <div className="rule-top pt-3">
         <p className="eyebrow">{numero}</p>
-        <h2 id={`h-${numero}`} className="display mt-1 text-2xl font-semibold sm:text-3xl">{titulo}</h2>
+        <h2 id={idTitulo} className="display mt-1 text-2xl font-semibold sm:text-3xl">{titulo}</h2>
       </div>
       <div className="mt-5">{children}</div>
     </section>
@@ -224,6 +226,13 @@ export default function Observatorio() {
 
       <Seccion numero="04 · Qué se salió de lo normal" titulo="Semanas atípicas del último año" id="atipicas">
         <TablaAnomalias anomalias={recientes} munis={munis} onSeleccion={(c) => { track("clic_tabla_atipicas"); seleccionar(c); }} />
+      </Seccion>
+
+      <Seccion numero="05 · Su opinión" titulo="Comentarios y feedback" id="opinion">
+        <div className="grid gap-12 lg:grid-cols-2">
+          <Comentarios hilo="app:seguridad" titulo="Comentarios sobre esta herramienta" />
+          <FormularioFeedback />
+        </div>
       </Seccion>
 
       <section className="mt-14 rule-top pt-3" aria-label="Fuente y actualización">

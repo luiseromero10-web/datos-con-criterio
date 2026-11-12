@@ -20,11 +20,11 @@ export default function PanelEventosDev() {
   const recientes = [...s.registros].reverse().slice(0, 14);
 
   return (
-    <details
-      open
-      className="mono fixed bottom-3 right-3 z-50 w-[21rem] max-w-[calc(100vw-1.5rem)] border-2 border-ink bg-paper2 text-xs text-ink shadow-[4px_4px_0_0_var(--ink)]"
+    <aside
       aria-label="Panel de eventos en simulación"
+      className="mono fixed bottom-3 right-3 z-50 w-[21rem] max-w-[calc(100vw-1.5rem)] border-2 border-ink bg-paper2 text-xs text-ink shadow-[4px_4px_0_0_var(--ink)]"
     >
+      <details open>
       <summary className="cursor-pointer select-none px-3 py-2 font-medium">
         Eventos · simulación <span className="text-ink2">({APP})</span>
       </summary>
@@ -65,6 +65,7 @@ export default function PanelEventosDev() {
           )}
         </div>
       </div>
-    </details>
+      </details>
+    </aside>
   );
 }

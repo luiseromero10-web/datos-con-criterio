@@ -1,0 +1,14 @@
+{
+  "name": "@dcc/supabase",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Migraciones y Edge Function de la comunidad (objetos dcc_ en el proyecto compartido). Las pruebas corren en local, sin tocar el proyecto real.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "vitest": "^3.2.4"
+  }
+}

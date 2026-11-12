@@ -196,3 +196,28 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 - Lighthouse móvil, build de producción vía el portal (medianas de 3 corridas donde hubo duda; la variación entre corridas llega a ±5 puntos): portada 99 (antes 97), observatorio 97 (antes 94), metodología 96 (antes 95), Sobre mí 95 (antes 96); accesibilidad 100 en las cuatro. Criterio de no caer más de 3 puntos: cumplido.
 
 **No verificado / límites:** el envío real a Supabase (llega en P3); el conteo real de visitas en Cloudflare (requiere publicar y el identificador); el panel no se probó en celular físico.
+
+
+## 2026-11-12 · D22 · P3: comentarios, feedback y eventos (escritos y probados en local; sin aplicar)
+**Entregado:** migración `supabase/migrations/20261112000000_dcc_comunidad.sql` (4 tablas y 3 funciones `dcc_`), su reversa `supabase/reversa/dcc_comunidad_bajar.sql`, la Edge Function `supabase/functions/dcc-comunidad/` (`logica.ts`, `manejador.ts`, `index.ts`), los componentes `Comentarios` y `FormularioFeedback` y el cliente de la API en `@dcc/comunidad`, y la guía `docs/despliegue-comunidad.md`.
+
+**Diseño que conviene recordar:**
+- Aislamiento: RLS activado con una política explícita que niega todo a `anon` y `authenticated` (así no aparece el aviso «RLS sin políticas»); sin privilegios de tabla para esos roles; funciones `SECURITY INVOKER`, `search_path` vacío y `EXECUTE` solo para `service_role`. Ninguna página usa claves de ROMI: todo pasa por la función.
+- La función se despliega con `verify_jwt = false` (las claves nuevas de Supabase no son JWT) y se protege sola: origen permitido (también en las escrituras, porque un `POST` `text/plain` no dispara la comprobación previa de CORS), Turnstile, campo trampa, límite de 5 envíos por día por origen y validación de longitudes. Si falta configuración, **se niega a escribir** en lugar de funcionar a medias.
+- Privacidad: no se guarda la IP. El cupo usa `SHA-256(sal | día | IP | tipo)`: la misma persona produce otra clave cada día y el hash no se puede volver IP. El día se cuenta en hora de Colombia. Un robot que llena el campo trampa recibe «todo bien» y no se guarda nada. El contacto del feedback solo se guarda con consentimiento expreso (lo exigen la función y la base).
+- Eventos: lista blanca de eventos y de la forma de cada propiedad en el servidor (misma que el contrato D21); las propiedades libres no caben. Se agrupan en la base con `dcc_sumar_eventos` (atómico, agrupa duplicados del lote).
+- Claves de Supabase: la función lee `SUPABASE_SECRET_KEYS` (`default`) y cae a `SUPABASE_SERVICE_ROLE_KEY` (antigua, vigente hasta fin de 2026).
+- Cliente: la lista de comentarios se pide solo cuando la persona la abre (cuota). En desarrollo todo es simulación (comentarios de ejemplo; lo que se envía no se guarda). Sin configuración en producción, o con el proyecto pausado, los componentes dicen «no disponible por ahora» y la app sigue funcionando.
+
+**Criterio de aceptación ajustado:** «ningún aviso nuevo» se mide contra la línea base de 15 avisos de seguridad y 21 de rendimiento (D18 y `docs/despliegue-comunidad.md`), y significa ningún aviso de seguridad nuevo y ningún WARN de rendimiento nuevo. Los dos índices de `dcc_comentarios` pueden figurar como `unused_index` (INFO) hasta que tengan uso.
+
+**Verificación (local):**
+- 81 pruebas automáticas: 52 en `supabase` (migración contra un Postgres real local con PGlite y los roles de Supabase; función con una base de mentira) y 29 en `@dcc/comunidad` (analítica y cliente). Más 33 de Python y los lint, tipos y builds de siempre.
+- Migración: `anon` y `authenticated` no pueden leer, escribir ni ejecutar nada `dcc_`; `service_role` sí; ninguna función es `SECURITY DEFINER`; un objeto ajeno queda intacto (datos, RLS y políticas); la reversa deja la base exactamente como estaba y se puede reaplicar.
+- Pruebas de mutación: con 4 alteraciones deliberadas de la migración fallan 7 pruebas; con 5 de la función (sin Turnstile, sin comprobar origen, sin campo trampa, sin límite, cupo con IP sin sal) fallan 6. Restauradas, pasan todas.
+- Navegador (simulación): abrir comentarios, escribir y enviar; la respuesta del autor aparece anidada; el feedback exige la autorización para guardar un contacto; se registran `comentario_enviado` y `feedback_enviado:<tipo>`; el campo trampa queda fuera de pantalla; en celular, una columna, sin desbordamiento y controles de al menos 44 px.
+- Accesibilidad (axe-core, página completa con ambos formularios abiertos): 0 violaciones, 48 reglas superadas. Quedan «incompletas» las de contraste, porque axe no puede calcular el fondo sobre la retícula de degradado; los contrastes se verificaron numéricamente (D17).
+- **Defecto hallado de la Fase 5 y corregido:** el título de cada sección del observatorio se enlazaba con `aria-labelledby` a un identificador con espacios («h-01 · Dónde»), que se lee como varias referencias y no resuelve. Afectaba a las cinco secciones y Lighthouse no lo marcaba. Ahora usan un identificador de una sola palabra.
+
+**No verificado:** nada contra el Supabase real (la migración y la función no se han aplicado ni desplegado); Turnstile real; el flujo de punta a punta (comentario → aprobación → aparición); que la función arranque en Deno (se probó su lógica en Node, no el `Deno.serve` ni la importación de `supabase-js`); el límite real de 429 contra la base real; el formulario con el widget real de Turnstile.
+**Pendiente (cada uno con confirmación y, donde se indica, con acciones suyas):** aplicar la migración, crear el widget y cargar los secretos, desplegar la función, variables de entorno y pruebas de humo (`docs/despliegue-comunidad.md`).
