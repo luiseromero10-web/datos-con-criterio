@@ -233,3 +233,12 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 - Analizador de seguridad: 15 avisos, los mismos de la linea base (ninguno nuevo). Rendimiento: 21 -> 23; los 2 nuevos son `unused_index` (INFO) de `dcc_comentarios`, esperado en tabla nueva; ningun WARN nuevo.
 
 **Pendiente:** widget de Turnstile y 3 secretos (autor), desplegar `dcc-comunidad`, pruebas de humo, variables de entorno.
+
+
+## 2026-11-12 · D24 · P3: funcion dcc-comunidad desplegada en romi-app
+**Hecho (con confirmacion del autor):** secretos `TURNSTILE_SECRET`, `DCC_SAL_HASH` y `DCC_ORIGENES` cargados por el autor; despliegue de `dcc-comunidad` (version 1, `verify_jwt=false`). Un cambio menor previo: en `logica.ts` los caracteres invisibles de una expresion regular pasaron a escapes `\uXXXX` (mismo comportamiento, ya no depende de caracteres invisibles en el archivo); 52 pruebas siguen pasando.
+
+**Pruebas de humo contra la funcion real:** `/salud` 200; OPTIONS con origen permitido 204 con CORS; origen ajeno 403 (OPTIONS y POST); POST `/eventos` valido 204 y fila en `dcc_eventos_dia` (fila de prueba borrada despues); POST comentario con token falso 403 `verificacion_fallida` y 0 filas en `dcc_comentarios`; GET `/comentarios` 200 vacio.
+
+**No verificado aun:** Turnstile con token real, envio de punta a punta desde una app publicada, el 429 del sexto envio (requiere tokens reales), el arranque con `SUPABASE_SECRET_KEYS` fue ejercitado por eventos y lectura (funciona).
+**Pendiente:** variables de entorno de las apps (Site key) y publicacion (P5).
