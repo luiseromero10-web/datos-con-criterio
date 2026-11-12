@@ -8,8 +8,8 @@ const BASE = "/seguridad";
 const nextConfig: NextConfig = {
   basePath: BASE,
   // Los archivos de public/ y las llamadas fetch() no reciben el prefijo solas: el código las arma con lib/ruta.ts.
-  env: { NEXT_PUBLIC_BASE_PATH: BASE },
-  transpilePackages: ["@dcc/marca"],
+  env: { NEXT_PUBLIC_BASE_PATH: BASE, NEXT_PUBLIC_APP_ID: "seguridad" },
+  transpilePackages: ["@dcc/marca", "@dcc/comunidad"],
   // Solo desarrollo: permite abrir el servidor desde otro equipo de la red local (p. ej. el celular). No afecta a producción.
   allowedDevOrigins: ["192.168.*.*"],
   cacheComponents: true,

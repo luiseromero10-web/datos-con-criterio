@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import MetricasModelo from "@/components/observatorio/MetricasModelo";
+import { EventoVista } from "@dcc/comunidad";
 
 export const metadata: Metadata = {
   title: "Metodología",
@@ -21,6 +22,7 @@ function Bloque({ n, titulo, children }: { n: string; titulo: string; children: 
 export default function Metodologia() {
   return (
     <article className="mx-auto max-w-6xl px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+      <EventoVista evento="ver_metodologia" />
       <p className="eyebrow">Caso 01 · Observatorio de seguridad</p>
       <h1 className="display mt-3 text-4xl font-semibold leading-[1.02] sm:text-6xl">Metodología y límites</h1>
       <p className="mt-5 max-w-prose text-lg text-ink2">Qué datos se usan, cómo se limpian, qué predice el modelo, qué tan bien lo hace y qué no debe hacerse con él.</p>

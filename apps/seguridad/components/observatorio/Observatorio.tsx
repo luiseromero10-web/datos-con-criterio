@@ -2,6 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { track } from "@dcc/comunidad";
 import Filtros from "./Filtros";
 import Perezoso from "@/components/Perezoso";
 import Cifras, { type CifrasDatos } from "./Cifras";
@@ -62,7 +63,11 @@ export default function Observatorio() {
         setMeta(m);
         setMunis(u);
       })
-      .catch((e: unknown) => vivo && setError(e instanceof Error ? e.message : "Error al cargar los datos"));
+      .catch((e: unknown) => {
+        if (!vivo) return;
+        track("error_datos", "inicio");
+        setError(e instanceof Error ? e.message : "Error al cargar los datos");
+      });
     return () => {
       vivo = false;
     };
@@ -102,7 +107,10 @@ export default function Observatorio() {
           semanasAtipicas: an.length,
         });
       } catch (e) {
-        if (vivo) setError(e instanceof Error ? e.message : "Error al consultar los datos");
+        if (vivo) {
+          track("error_datos", "consulta");
+          setError(e instanceof Error ? e.message : "Error al consultar los datos");
+        }
       }
     })();
     return () => {
@@ -125,7 +133,10 @@ export default function Observatorio() {
         setAnoms(a);
         setCargandoSerie(false);
       } catch (e) {
-        if (vivo) setError(e instanceof Error ? e.message : "Error al consultar la serie");
+        if (vivo) {
+          track("error_datos", "serie");
+          setError(e instanceof Error ? e.message : "Error al consultar la serie");
+        }
       }
     })();
     return () => {
@@ -169,7 +180,7 @@ export default function Observatorio() {
 
   return (
     <>
-      <div className="mt-8"><Filtros delito={delito} onDelito={setDelito} dpto={dpto} onDpto={(c) => { setDpto(c); setMpio(""); }} mpio={mpio} onMpio={setMpio} periodo={periodoId} onPeriodo={setPeriodoId} periodos={periodos} munis={munis} /></div>
+      <div className="mt-8"><Filtros delito={delito} onDelito={(d) => { setDelito(d); track("filtro_delito", d); }} dpto={dpto} onDpto={(c) => { setDpto(c); setMpio(""); track("filtro_departamento", c || "pais"); }} mpio={mpio} onMpio={(c) => { setMpio(c); if (c) track("filtro_municipio"); }} periodo={periodoId} onPeriodo={(p) => { setPeriodoId(p); track("filtro_periodo", p); }} periodos={periodos} munis={munis} /></div>
 
       <div className="mt-8"><Cifras d={cargando ? null : cifras} /></div>
 
@@ -178,7 +189,7 @@ export default function Observatorio() {
           <div className="grid h-[26rem] place-items-center border border-rule text-sm text-ink2 sm:h-[34rem]" aria-busy="true">Cargando datos…</div>
         ) : (
           <Perezoso alto="h-[26rem] sm:h-[34rem]">
-            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} seleccionado={mpio} onSeleccion={seleccionar} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
+            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} seleccionado={mpio} onSeleccion={(c) => { track("clic_mapa"); seleccionar(c); }} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
           </Perezoso>
         )}
         <p className="mt-3 max-w-prose text-sm text-ink2">
@@ -208,11 +219,11 @@ export default function Observatorio() {
       </Seccion>
 
       <Seccion numero="03 · Qué cambió" titulo="Municipios con mayor variación" id="cambios">
-        <TablaCambios cambios={cambios} munis={munis} onSeleccion={seleccionar} />
+        <TablaCambios cambios={cambios} munis={munis} onSeleccion={(c) => { track("clic_tabla_cambios"); seleccionar(c); }} />
       </Seccion>
 
       <Seccion numero="04 · Qué se salió de lo normal" titulo="Semanas atípicas del último año" id="atipicas">
-        <TablaAnomalias anomalias={recientes} munis={munis} onSeleccion={seleccionar} />
+        <TablaAnomalias anomalias={recientes} munis={munis} onSeleccion={(c) => { track("clic_tabla_atipicas"); seleccionar(c); }} />
       </Seccion>
 
       <section className="mt-14 rule-top pt-3" aria-label="Fuente y actualización">

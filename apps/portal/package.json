@@ -10,6 +10,7 @@
     "tipos": "tsc --noEmit"
   },
   "dependencies": {
+    "@dcc/comunidad": "*",
     "@dcc/marca": "*",
     "next": "16.4.6",
     "react": "19.3.0",

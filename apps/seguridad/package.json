@@ -12,6 +12,7 @@
     "prebuild": "node scripts/copiar-worker.mjs"
   },
   "dependencies": {
+    "@dcc/comunidad": "*",
     "@dcc/marca": "*",
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",
     "echarts": "^6.1.0",

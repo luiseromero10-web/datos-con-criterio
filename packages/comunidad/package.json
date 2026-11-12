@@ -1,0 +1,21 @@
+{
+  "name": "@dcc/comunidad",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interacción con los visitantes, común a todas las apps: eventos de uso agregados (sin datos personales), visitas y, más adelante, comentarios y feedback.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "tipos": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "next": ">=16",
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

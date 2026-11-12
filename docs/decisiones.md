@@ -169,3 +169,30 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 - `npm audit` marca 7 avisos moderados en `minimatch`, dependencia transitiva de las herramientas de desarrollo; no llega a lo que se publica.
 - Rendimiento medido solo en modo desarrollo; no se midió el build de producción servido por el portal.
 - Las pruebas de carga diferida (mapa y gráfico) requieren desplazamiento real de la página; con `scrollIntoView` programático el navegador de pruebas no las activa.
+
+
+## 2026-11-12 · D21 · P2: analítica de visitas e interacción (local, en simulación)
+**Paquete `@dcc/comunidad`** (`packages/comunidad`): `track(evento, propiedad?)`, `trackUnaVez`, `vaciarYa`, `modo()`, y los componentes `PanelEventosDev`, `AnaliticaVisitas` y `EventoVista`. La lógica de la cola (`rastreador.ts`) es pura y se prueba sola; el transporte y la configuración están aparte (`track.ts`, `config.ts`).
+
+**Modos** (`modo()`): `simulacion` (desarrollo: nada sale del equipo; los eventos y los lotes se ven en el panel y en la consola), `real` (producción con `NEXT_PUBLIC_EVENTOS_URL`), `inactivo` (producción sin URL: no hace nada) y `apagado` (`NEXT_PUBLIC_EVENTOS=off`, que manda sobre todo y no exige redesplegar código).
+**Privacidad por diseño:** nombres de evento `^[a-z][a-z0-9_]{0,39}$` y propiedad `^[A-Za-z0-9_-]{0,40}$`: no cabe texto libre. Se agrupan repetidos (evento + propiedad + n). El payload solo tiene `app` y `eventos`: sin identificador de visitante, IP ni hora. Respeta «No rastrear» (DNT) y el Control Global de Privacidad. No usa cookies ni almacenamiento local. El municipio se registra sin código.
+**Presupuesto:** máximo 3 lotes por carga de página, un lote cada 10 s y hasta 50 pares por lote; además se envía lo pendiente al salir de la página (`pagehide`, `sendBeacon`). Con ~3 invocaciones por visita, la cuota gratuita de 500 000 invocaciones al mes alcanza para ~150 000 visitas.
+
+**Contrato para P3 (`POST` a la función `dcc-comunidad`, ruta `/eventos`):**
+- Cuerpo JSON enviado como `text/plain;charset=UTF-8` (evita la comprobación previa de CORS); la función lo interpreta como JSON.
+- `{ "app": "seguridad", "eventos": [ { "evento": "filtro_delito", "propiedad": "hurto_vehiculos", "n": 2 } ] }`
+- La función debe: validar `app` contra una lista blanca (`portal`, `seguridad`); validar cada nombre y propiedad con las mismas expresiones; aceptar hasta 50 eventos y `n` entre 1 y 1000; sumar en `dcc_eventos_dia` (fecha del servidor, app, evento, propiedad) y no guardar nada más; responder 204.
+- Lista blanca de eventos: `vista_app`, `filtro_delito`, `filtro_departamento` (código o `pais`), `filtro_municipio`, `filtro_periodo` (`ult12`, un año o `todo`), `clic_mapa`, `clic_tabla_cambios`, `clic_tabla_atipicas`, `ver_metodologia`, `error_datos` (`inicio`, `consulta`, `serie`); reservados para P3 y P4: `abrir_articulo`, `comentario_enviado`, `feedback_enviado`.
+
+**Visitas:** `AnaliticaVisitas` inyecta el script de Cloudflare Web Analytics solo en producción, con `NEXT_PUBLIC_CF_BEACON_TOKEN` y sin «No rastrear». El identificador es público; lo entrega el autor al desplegar. Retención de datos de Cloudflare: no documentada, no se promete.
+**Panel de simulación** (solo desarrollo, esquina inferior derecha): muestra la cola, los lotes «enviados» (simulados), los eventos contados y los descartados con su motivo, y un botón «Enviar lote ahora». En producción no existe.
+
+**Instrumentación:** el observatorio emite `filtro_*`, `clic_mapa`, `clic_tabla_*`, `error_datos` y `ver_metodologia`; ambas apps emiten `vista_app` una vez por carga de página, con su propio `app` (`NEXT_PUBLIC_APP_ID`).
+
+**Verificación:**
+- 21 pruebas automáticas (vitest) en verde: cola, agrupación, 3 lotes, 50 pares, validación de nombres, DNT, Control Global de Privacidad, apagado, modos, transporte real con `fetch` y `sendBeacon` simulados y desarrollo sin salida. Prueba de mutación: al desactivar a propósito el respeto a DNT y al apagado, 4 pruebas fallan; al romper la validación y el tope de lotes, 2 fallan.
+- En el navegador (desarrollo, a través del portal): cada acción genera su evento con la propiedad esperada (filtros, clic real en el mapa, clics en ambas tablas, vista de la metodología); el lote se «envía» a los 10 s, agrupado; con el tope alcanzado, el evento siguiente queda descartado por `limite de lotes`; con DNT simulado, los eventos quedan descartados como `inactivo`.
+- Producción (build servido por el portal): el panel no existe; con identificador se inyecta el script de Cloudflare con la URL y el atributo correctos; sin identificador no se inyecta nada.
+- Lighthouse móvil, build de producción vía el portal (medianas de 3 corridas donde hubo duda; la variación entre corridas llega a ±5 puntos): portada 99 (antes 97), observatorio 97 (antes 94), metodología 96 (antes 95), Sobre mí 95 (antes 96); accesibilidad 100 en las cuatro. Criterio de no caer más de 3 puntos: cumplido.
+
+**No verificado / límites:** el envío real a Supabase (llega en P3); el conteo real de visitas en Cloudflare (requiere publicar y el identificador); el panel no se probó en celular físico.

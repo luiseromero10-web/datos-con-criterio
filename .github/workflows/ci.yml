@@ -36,3 +36,16 @@ jobs:
       # El build genera los tipos de Next que necesita el comprobador, por eso va antes.
       - run: npm run build -w apps/${{ matrix.app }}
       - run: npm run tipos -w apps/${{ matrix.app }}
+  paquetes:
+    # Paquetes compartidos: aquí se prueba, entre otras cosas, que la analítica respeta «no rastrear» y el interruptor de apagado.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run tipos -w packages/comunidad
+      - run: npm run test -w packages/comunidad

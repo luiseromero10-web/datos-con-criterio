@@ -2,12 +2,16 @@
   "name": "datos-con-criterio",
   "private": true,
   "description": "Plataforma Datos con Criterio: portal y apps independientes (una por proyecto de Vercel) con identidad común.",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev:portal": "npm run dev -w apps/portal",
     "dev:seguridad": "npm run dev -w apps/seguridad",
     "lint": "npm run lint --workspaces --if-present",
     "tipos": "npm run tipos --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   }
 }

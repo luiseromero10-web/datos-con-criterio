@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { clasesFuentes } from "@dcc/marca/fuentes";
 import { SiteFooter, SiteHeader } from "@dcc/marca/componentes";
+import { AnaliticaVisitas, EventoVista, PanelEventosDev } from "@dcc/comunidad";
 
 export const metadata: Metadata = {
   title: { default: "Datos con Criterio", template: "%s · Datos con Criterio" },
@@ -18,6 +19,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main id="contenido" className="flex-1">{children}</main>
         <SiteFooter />
+        {/* Conteo de visitas (Cloudflare, solo producción), vista de la app y panel de simulación (solo desarrollo) */}
+        <AnaliticaVisitas />
+        <EventoVista />
+        <PanelEventosDev />
       </body>
     </html>
   );

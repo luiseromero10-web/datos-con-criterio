@@ -23,3 +23,15 @@ npm run dev:seguridad       # terminal 1: la zona en http://localhost:3100/segur
 npm run dev:portal          # terminal 2: el portal en http://localhost:3000 (ahí también se ve /seguridad)
 npm run lint && npm run build && npm run tipos
 ```
+
+### Analítica (paquete `packages/comunidad`)
+
+En desarrollo, una esquina de cada app muestra el panel «Eventos · simulación»: lo que se enviaría, sin enviarlo. En producción no existe. Variables públicas:
+
+| Variable | Para qué |
+|---|---|
+| `NEXT_PUBLIC_EVENTOS_URL` | URL de la función de eventos (P3). Vacía en producción = no se envía nada |
+| `NEXT_PUBLIC_EVENTOS=off` | interruptor de apagado de los eventos |
+| `NEXT_PUBLIC_CF_BEACON_TOKEN` | identificador público de Cloudflare Web Analytics (visitas) |
+
+`npm test` corre las pruebas de la analítica. El contrato de los eventos está en `docs/decisiones.md` (D21).

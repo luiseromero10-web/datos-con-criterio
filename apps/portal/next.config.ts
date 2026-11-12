@@ -7,7 +7,8 @@ import type { NextConfig } from "next";
 const ZONA_SEGURIDAD = process.env.ZONA_SEGURIDAD_URL ?? "http://localhost:3100";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@dcc/marca"],
+  transpilePackages: ["@dcc/marca", "@dcc/comunidad"],
+  env: { NEXT_PUBLIC_APP_ID: "portal" },
   // Solo desarrollo: permite abrir el servidor desde otro equipo de la red local (p. ej. el celular). No afecta a producción.
   allowedDevOrigins: ["192.168.*.*"],
   cacheComponents: true,
