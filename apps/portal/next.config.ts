@@ -1,4 +1,5 @@
 import path from "node:path";
+import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 // El portal es la zona por defecto: sirve la portada, los artículos, «Sobre mí» y la privacidad, y reenvía cada app a su propio
@@ -21,7 +22,7 @@ const nextConfig: NextConfig = {
     ];
   },
   turbopack: {
-    // monorepo: el paquete común está fuera de esta carpeta
+    // monorepo: el paquete común y los artículos (content/) están fuera de esta carpeta
     root: path.join(__dirname, "../.."),
     rules: {
       "*.css": {
@@ -32,4 +33,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Los artículos son MDX con datos de cabecera (frontmatter) que se exportan como `frontmatter`.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: ["remark-gfm", "remark-frontmatter", ["remark-mdx-frontmatter", { name: "frontmatter" }]],
+  },
+});
+
+export default withMDX(nextConfig);

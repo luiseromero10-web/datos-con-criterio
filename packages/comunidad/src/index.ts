@@ -5,5 +5,7 @@ export { default as AnaliticaVisitas } from "./AnaliticaVisitas";
 export { default as EventoVista } from "./EventoVista";
 export { default as Comentarios } from "./Comentarios";
 export { default as FormularioFeedback } from "./FormularioFeedback";
+export { default as ArticulosRelacionados, leerIndice } from "./ArticulosRelacionados";
+export type { EntradaIndice } from "./ArticulosRelacionados";
 export { modoComunidad, contarComentarios, mensajeDeError } from "./api";
 export type { ModoComunidad, ComentarioPublico } from "./api";

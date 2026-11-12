@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Comentarios, FormularioFeedback, track } from "@dcc/comunidad";
+import { ArticulosRelacionados, Comentarios, FormularioFeedback, track } from "@dcc/comunidad";
 import Filtros from "./Filtros";
 import Perezoso from "@/components/Perezoso";
 import Cifras, { type CifrasDatos } from "./Cifras";
@@ -233,6 +233,7 @@ export default function Observatorio() {
           <Comentarios hilo="app:seguridad" titulo="Comentarios sobre esta herramienta" />
           <FormularioFeedback />
         </div>
+        <ArticulosRelacionados app="seguridad" />
       </Seccion>
 
       <section className="mt-14 rule-top pt-3" aria-label="Fuente y actualización">

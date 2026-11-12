@@ -49,5 +49,7 @@ jobs:
       - run: npm ci
       - run: npm run tipos -w packages/comunidad
       - run: npm run test -w packages/comunidad
+      # Validación de los datos de cabecera de los artículos (fecha, estado, apps, nombre de archivo)
+      - run: npm run test -w apps/portal
       # Migración contra un Postgres local (PGlite) y la lógica de la función dcc-comunidad. No toca ningún proyecto real.
       - run: npm run test -w supabase

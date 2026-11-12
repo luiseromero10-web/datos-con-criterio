@@ -250,3 +250,19 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 **Hallazgo:** el navegador integrado del panel de Claude falla el widget con el error 600010 (Cloudflare lo trata como automatizado); en un Chrome normal funciona. No es un defecto de la app ni de la configuracion.
 
 **Sigue sin verificar:** el 429 del sexto envio (necesita 6 tokens reales), el formulario de feedback con widget real, y el comportamiento desde el dominio publicado (P5).
+
+
+## 2026-11-12 · D26 · P4: artículos en MDX en el portal y bloque en cada herramienta
+**Entregado (local, sin publicar nada):** `content/articulos/*.mdx` con datos de cabecera (titulo, fecha, resumen, apps, estado); páginas `/articulos` y `/articulos/<slug>` del portal con comentarios (`hilo = articulo:<slug>`); índice estático `/articulos/indice.json`; componente `ArticulosRelacionados` en `@dcc/comunidad`, usado en la sección 05 del observatorio; plantilla `ejemplo-borrador.mdx`.
+
+**Diseño que conviene recordar:**
+- MDX con `@next/mdx` (plugins como texto, requisito de Turbopack): `remark-gfm` (tablas) y `remark-frontmatter` + `remark-mdx-frontmatter`. Estilos en `apps/portal/mdx-components.tsx` con los tokens de la marca; sin plugin de tipografía.
+- **Un artículo mal escrito rompe el build** (`lib/articulo-meta.ts`): fecha inválida, estado desconocido, app desconocida o nombre de archivo fuera de formato. El nombre del archivo (la dirección) admite hasta 40 caracteres, porque el evento `abrir_articulo:<slug>` del servidor no acepta más y descartaría el lote entero.
+- **Borradores:** solo se ven al desarrollar (`NODE_ENV !== production`). En producción no figuran en la lista, ni en el índice, ni en los metadatos, y su contenido no se envía. Verificado compilando y sirviendo en producción: índice vacío, lista «Aún no hay artículos publicados», y el borrador no filtra su texto.
+- **Limitación conocida:** una dirección de artículo inexistente (o un borrador en producción) muestra la página 404 con `noindex` pero con estado HTTP 200, porque la respuesta ya empezó a enviarse (caché de componentes). No filtra contenido; pendiente de revisar si importa para buscadores.
+- `ArticulosRelacionados` lee el índice del portal (mismo dominio, sin costo de función) y, solo si hay artículos de esa app, pide los conteos de comentarios en una llamada. Descarta lo que no encaje con la forma esperada (un `slug` con forma de ruta nunca llega a un enlace). Sin índice (herramienta abierta sola, fuera del portal) no muestra nada. El enlace es un `<a>` común porque el artículo vive en otra zona.
+- Con la caché de componentes, `generateStaticParams` no puede ir vacío: si no hay artículos publicados se declara una ruta inexistente que responde 404.
+
+**Verificación (local):** 25 pruebas nuevas de la validación y 11 de `leerIndice` (en total, 25 del portal, 40 de `@dcc/comunidad`, 52 de `supabase`); lint, tipos y build de portal y seguridad sin errores; `npm audit` de producción sin vulnerabilidades. Pruebas de mutación: con el filtro de borradores roto falla 1 prueba y con el estado sin validar fallan 2. Navegador (desarrollo): lista y artículo con el borrador y su etiqueta, tabla sin desborde a 375 px, comentarios del artículo, y en el observatorio (visto por el portal) el bloque «Artículos sobre esta herramienta» con enlace `/articulos/ejemplo-borrador`, resumen y «Comentarios (1)» desplegable.
+**No verificado:** con el dominio publicado (P5), con un artículo real publicado de extremo a extremo, accesibilidad con axe de las páginas nuevas, ni el evento `abrir_articulo` enviado al servidor real.
+**Pendiente del autor:** escribir los artículos reales; el borrador solo es una plantilla.
