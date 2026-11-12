@@ -10,3 +10,8 @@ site/node_modules/
 site/.next/
 .vercel/
 .wrangler/
+.claude/
+site/public/vendor/
+
+# la geometría del mapa sí va en el repo (la regla data/ es para los datos descargados)
+!site/public/data/

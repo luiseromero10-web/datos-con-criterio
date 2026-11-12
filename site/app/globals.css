@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* Atlas editorial: papel cálido, tinta, bermellón. Modo oscuro = "mapa nocturno". */
+:root {
+  --paper: #f3eee3;
+  --paper-2: #ebe4d3;
+  --ink: #1c1a16;
+  --ink-2: #57524a;
+  --rule: #cdc4ae;
+  --accent: #a8321a;
+  --accent-ink: #ffffff;
+  --forecast: #1d5b57;
+  --warn: #9a5b00;
+  --map-nodata: #ddd5c0;
+  --map-line: #f3eee3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14120e;
+    --paper-2: #1d1a14;
+    --ink: #efe8d7;
+    --ink-2: #aaa28f;
+    --rule: #39342a;
+    --accent: #f08a62;
+    --accent-ink: #14120e;
+    --forecast: #6cc7bd;
+    --warn: #e5b04d;
+    --map-nodata: #26221a;
+    --map-line: #14120e;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink2: var(--ink-2);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-forecast: var(--forecast);
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-plex);
+  --font-mono: var(--font-plex-mono);
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  /* papel con grano muy leve */
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 4%, transparent) 1px, transparent 1px);
+  background-size: 5px 5px;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
+
+.display { font-family: var(--font-fraunces), Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.02em; }
+.mono { font-family: var(--font-plex-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.eyebrow { font-family: var(--font-plex-mono), monospace; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.rule-top { border-top: 2px solid var(--ink); }
+.panel { background: var(--paper-2); border: 1px solid var(--rule); }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.reveal { animation: reveal .7s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes reveal { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.maplibregl-ctrl-attrib { font-size: 11px !important; }

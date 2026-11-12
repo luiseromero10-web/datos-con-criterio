@@ -107,3 +107,20 @@ La primera ingesta con Fase 4 (run 43127891663) falló en la descarga del MGN: `
 Desde el equipo del autor la misma llamada funciona y el certificado es válido (Sectigo, vence 2027-02), por lo que no es de certificado; lo más probable es que el servidor corte las conexiones de los centros de datos de GitHub (no confirmado).
 Decisión: copia fija del MGN 2018 en R2 (`ref/mgn_municipios_2018.geojson`, 8,6 MB, vigencia que no cambia). `pipelines/seguridad/mgn.py` lee de R2 por defecto (`MGN_URL` para cambiarla) y `--desde-dane` refresca desde la fuente oficial para volver a subirla.
 Lección repetida: probar cada paso nuevo en Actions antes de darlo por bueno; los fallos que no se ven en local son de entorno.
+
+## 2026-11-12 · D17 · Fase 5: sitio Next.js (local)
+**Stack:** Next.js 16 (App Router, TypeScript), Tailwind 4, `@duckdb/duckdb-wasm`, ECharts, MapLibre GL. Código en `site/`. Los datos se leen directamente de R2 (`NEXT_PUBLIC_DATA_URL`, por defecto la URL pública `r2.dev`) con DuckDB-WASM cargado de forma diferida.
+**Rutas:** `/` (portada), `/casos/observatorio-seguridad` (la app), `/casos/observatorio-seguridad/metodologia` (métricas del modelo leídas en vivo de `gold/metrics.json`), `/sobre-mi`. Todas estáticas.
+**Contenido de la app:** memo (marcado como pendiente del autor), filtros (delito, departamento, municipio, periodo), cifras, mapa coroplético con contornos de puntos calientes, serie semanal con pronóstico, intervalo del 80 % y semanas atípicas marcadas, tablas de variación y de semanas atípicas, y la etiqueta «Datos actualizados al…» con enlaces a metodología y código.
+**Diseño:** atlas editorial (papel cálido, Fraunces/IBM Plex, bermellón), modo oscuro real, margen de 16 px, sin desbordamiento horizontal.
+
+**Cambios al plan (a confirmar por el autor):**
+1. **Sin PMTiles:** el mapa usa un GeoJSON simplificado (`site/public/data/municipios.geojson`, 1,95 MB, ~275 m de tolerancia, generado por `pipelines/seguridad/mgn_web.py`). PMTiles exigía herramientas (tippecanoe) que no corren en Windows y no hacen falta con 1 122 polígonos.
+2. **DuckDB-WASM desde jsDelivr:** los binarios WASM (decenas de MB) no caben cómodamente en el repo; se cargan del CDN. Es una dependencia externa del sitio; si no se quiere, se alojan en R2.
+3. **Worker de MapLibre como estático:** MapLibre 6 carga su worker como módulo ES y Turbopack no lo resuelve; `scripts/copiar-worker.mjs` lo copia de `node_modules` a `public/vendor/maplibre` en cada `dev`/`build` (ignorado por git).
+
+**Verificación (build de producción, Lighthouse móvil):** accesibilidad 100 en las 4 páginas (criterio ≥ 95), rendimiento 94-97, buenas prácticas 100, SEO 100; FCP/LCP 0,8 s, TBT 290 ms, CLS 0. Contraste mínimo de los colores clave: 5,28 (claro) y 6,84 (oscuro) sobre AA = 4,5. Los filtros actualizan los datos en ~125 ms en caliente (criterio < 1 s).
+Primera versión de Lighthouse: accesibilidad 94 y rendimiento 79; se corrigió un `aria-label` sin rol, un salto de encabezado y se retrasó la carga del mapa y del gráfico hasta que estén cerca de la pantalla (TBT 950 → 290 ms).
+No verificado: carga en frío con red lenta real; el despliegue en Vercel.
+
+**Observación sobre los datos (para el autor):** la tabla de semanas atípicas destaca Guaviare con registros individuales de 27 (2026-01-12, El Retorno) y 38 víctimas (2026-05-26, San José del Guaviare); sin ellos 2026 llevaría ~31 homicidios. Pueden ser hechos reales con varias víctimas (p. ej. enfrentamientos armados) o errores de registro; no está verificado. El sitio los muestra como atípicos, sin interpretarlos.
