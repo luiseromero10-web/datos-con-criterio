@@ -254,8 +254,11 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
         setDistancia(null);
       }
       // las alturas suben desde cero hasta las que corresponden a su tasa (sin animación si la persona pide menos movimiento)
-      const hA = alturaExtrusion(pctA, ladoMayorM(cA));
-      const hB = cB ? alturaExtrusion(pctB, ladoMayorM(cB)) : 0;
+      // en pantallas angostas el bloque y la inclinación son menores: si no, el municipio tapa casi todo el mapa
+      const movil = (contenedor.current?.clientWidth ?? 0) < 640;
+      const factor = movil ? 0.55 : 1;
+      const hA = alturaExtrusion(pctA, ladoMayorM(cA)) * factor;
+      const hB = cB ? alturaExtrusion(pctB, ladoMayorM(cB)) * factor : 0;
       const poner = (k: number) =>
         m.setPaintProperty("mun-3d", "fill-extrusion-height", ["match", ["get", "c"], seleccionado, hA * k, seleccionadoB || "__ninguno__", hB * k, 0] as never);
       if (sinMovimiento() || !cambio) {
@@ -276,7 +279,7 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
       m.fitBounds([[todo[0], todo[1]], [todo[2], todo[3]]], {
         padding: { top: 50, bottom: 40, right: 40, left: ancho >= 640 ? (cB ? 420 : 360) : 40 },
         maxZoom: cB ? 8.2 : 9.2,
-        pitch: cB ? 50 : 56,
+        pitch: movil ? 42 : cB ? 50 : 56,
         duration: sinMovimiento() ? 0 : 1700,
       });
     })();
