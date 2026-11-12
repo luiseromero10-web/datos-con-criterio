@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Archivo, Martian_Mono } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 
-const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["normal", "italic"], display: "swap" });
-const plex = IBM_Plex_Sans({ variable: "--font-plex", subsets: ["latin"], weight: ["400", "500", "600"], display: "swap" });
-const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
+// Archivo (Omnibus-Type, Argentina): variable en ancho y peso; titulares expandidos, texto normal.
+const archivo = Archivo({ variable: "--font-archivo", subsets: ["latin"], axes: ["wdth"], display: "swap" });
+// Martian Mono: etiquetas técnicas y cifras pequeñas.
+const martian = Martian_Mono({ variable: "--font-martian", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: { default: "Datos con Criterio", template: "%s · Datos con Criterio" },
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${fraunces.variable} ${plex.variable} ${plexMono.variable}`}>
+    <html lang="es" className={`${archivo.variable} ${martian.variable}`}>
       <body className="min-h-dvh flex flex-col">
         <a href="#contenido" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-3 focus:bg-ink focus:px-3 focus:py-2 focus:text-paper">
           Saltar al contenido

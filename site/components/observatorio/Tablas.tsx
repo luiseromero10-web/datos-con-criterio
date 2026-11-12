@@ -39,7 +39,7 @@ export function TablaCambios({ cambios, munis, onSeleccion, minimo = 30 }: { cam
                   <Insignia cat={c.categoria} />
                 </span>
                 <span className="mono shrink-0 text-right text-sm">
-                  <span className={c.pct >= 0 ? "text-accent" : "text-forecast"}>{signo(c.pct)}</span>
+                  <span className={c.pct >= 0 ? "text-senal" : "text-forecast"}>{signo(c.pct)}</span>
                   <span className="block text-xs text-ink2">{entero(c.prev)} → {entero(c.ult)}</span>
                 </span>
               </button>
@@ -84,7 +84,7 @@ export function TablaAnomalias({ anomalias, munis, onSeleccion }: { anomalias: A
                   <span className="block text-xs text-ink2">Semana del {fechaLarga(a.p)}</span>
                 </span>
                 <span className="mono shrink-0 text-right text-sm">
-                  <span className={a.sentido === "alta" ? "text-accent" : "text-forecast"}>{entero(a.valor)}</span>
+                  <span className={a.sentido === "alta" ? "text-senal" : "text-forecast"}>{entero(a.valor)}</span>
                   <span className="block text-xs text-ink2">esperado {decimal(a.esperado)}</span>
                 </span>
               </button>

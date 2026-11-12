@@ -7,7 +7,7 @@ export default function Inicio() {
     <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:px-6 sm:pt-20">
       <p className="eyebrow reveal">Portafolio de decisiones con datos abiertos</p>
       <h1 className="display reveal mt-4 max-w-4xl text-5xl font-semibold leading-[0.95] sm:text-7xl" style={{ animationDelay: ".08s" }}>
-        Datos <em className="font-normal">con</em> criterio.
+        Datos <span className="font-normal text-accent">con</span> criterio.
       </h1>
       <p className="reveal mt-6 max-w-2xl text-lg text-ink2 sm:text-xl" style={{ animationDelay: ".16s" }}>
         Casos reales con datos públicos de Colombia, donde cada cifra sirve para decidir algo. Cada caso sigue la misma ruta y termina en una recomendación, con sus límites a la vista.

@@ -37,7 +37,7 @@ export default function SerieTiempo({ titulo, serie, pron, anomalias, ultimaConf
     const ink = cssVar("--ink", "#1c1a16");
     const ink2 = cssVar("--ink-2", "#57524a");
     const rule = cssVar("--rule", "#cdc4ae");
-    const acento = cssVar("--accent", "#a8321a");
+    const senal = cssVar("--senal-viva", "#f59e0b");
     const fc = cssVar("--forecast", "#1d5b57");
     const semanas = Array.from(new Set([...serie.map((s) => s.p), ...pron.map((p) => p.p)])).sort();
     const mapaObs = new Map(serie.map((s) => [s.p, s.n]));
@@ -76,18 +76,18 @@ export default function SerieTiempo({ titulo, serie, pron, anomalias, ultimaConf
       yAxis: { type: "value", name: "Denuncias por semana", nameTextStyle: { color: ink2, align: "left" }, axisLabel: { color: ink2 }, splitLine: { lineStyle: { color: rule, type: "dashed" } } },
       dataZoom: [
         { type: "inside", start: inicioZoom, end: 100 },
-        { type: "slider", start: inicioZoom, end: 100, height: 20, bottom: 8, borderColor: rule, textStyle: { color: ink2 }, fillerColor: "rgba(168,50,26,.12)" },
+        { type: "slider", start: inicioZoom, end: 100, height: 20, bottom: 8, borderColor: rule, textStyle: { color: ink2 }, fillerColor: "rgba(31,69,196,.12)" },
       ],
       series: [
         { name: "Observado", type: "line", data: obsOk, showSymbol: false, lineStyle: { color: ink, width: 1.6 }, itemStyle: { color: ink }, z: 3 },
         {
           name: "Observado (provisional)", type: "line", data: obsProv, showSymbol: false, lineStyle: { color: ink2, width: 1.6, type: "dashed" }, itemStyle: { color: ink2 }, z: 3,
-          markArea: primeraProv && ultimaObs ? { silent: true, itemStyle: { color: "rgba(150,120,60,.10)" }, label: { show: true, position: "insideTop", color: ink2, fontSize: 11, formatter: "Semanas provisionales" }, data: [[{ xAxis: primeraProv }, { xAxis: ultimaObs }]] } : undefined,
+          markArea: primeraProv && ultimaObs ? { silent: true, itemStyle: { color: "rgba(31,69,196,.07)" }, label: { show: true, position: "insideTop", color: ink2, fontSize: 11, formatter: "Semanas provisionales" }, data: [[{ xAxis: primeraProv }, { xAxis: ultimaObs }]] } : undefined,
         },
         { name: "_base", type: "line", data: p10, stack: "banda", symbol: "none", lineStyle: { opacity: 0 }, silent: true, tooltip: { show: false }, legendHoverLink: false },
         { name: "Intervalo 80 %", type: "line", data: ancho, stack: "banda", symbol: "none", lineStyle: { opacity: 0 }, areaStyle: { color: fc, opacity: 0.22 }, silent: true, itemStyle: { color: fc } },
         { name: "Pronóstico", type: "line", data: p50, showSymbol: false, lineStyle: { color: fc, width: 2.2 }, itemStyle: { color: fc }, z: 4 },
-        { name: "Semana atípica (alta)", type: "scatter", data: punto("alta"), symbolSize: 9, itemStyle: { color: acento, borderColor: cssVar("--paper", "#fff"), borderWidth: 1 }, z: 5 },
+        { name: "Semana atípica (alta)", type: "scatter", data: punto("alta"), symbolSize: 9, itemStyle: { color: senal, borderColor: ink, borderWidth: 1 }, z: 5 },
         { name: "Semana atípica (baja)", type: "scatter", data: punto("baja"), symbol: "diamond", symbolSize: 10, itemStyle: { color: fc, borderColor: cssVar("--paper", "#fff"), borderWidth: 1 }, z: 5 },
       ],
     };

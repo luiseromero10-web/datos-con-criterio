@@ -1,33 +1,43 @@
 @import "tailwindcss";
 
-/* Atlas editorial: papel cálido, tinta, bermellón. Modo oscuro = "mapa nocturno". */
+/*
+  Identidad «Datos con Criterio» (común a todas las apps; se extraerá a packages/marca).
+  Concepto: plano técnico. Papel blanco azulado con retícula muy tenue, tinta marina, cobalto como color de marca,
+  cerúleo para lo pronosticado y un único color de señal (ámbar) reservado para alertas.
+*/
 :root {
-  --paper: #f3eee3;
-  --paper-2: #ebe4d3;
-  --ink: #1c1a16;
-  --ink-2: #57524a;
-  --rule: #cdc4ae;
-  --accent: #a8321a;
+  --paper: #f7f9fc;
+  --paper-2: #e9f0f9;
+  --ink: #0b1f3a;
+  --ink-2: #465a76;
+  --rule: #c8d5e8;
+  --accent: #1f45c4;          /* cobalto: marca, enlaces, acentos */
   --accent-ink: #ffffff;
-  --forecast: #1d5b57;
-  --warn: #9a5b00;
-  --map-nodata: #ddd5c0;
-  --map-line: #f3eee3;
+  --forecast: #0b72a8;        /* cerúleo: pronóstico y disminuciones */
+  --senal: #9a4508;           /* ámbar oscuro para texto de alerta (contraste AA sobre papel y panel) */
+  --senal-viva: #f59e0b;      /* ámbar vivo para marcas gráficas (puntos, contornos) */
+  --map-nodata: #dfe6f0;
+  --map-line: #ffffff;
+  --map-casing: #0b1f3a;
+  --grid: rgba(31, 69, 196, 0.045);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #14120e;
-    --paper-2: #1d1a14;
-    --ink: #efe8d7;
-    --ink-2: #aaa28f;
-    --rule: #39342a;
-    --accent: #f08a62;
-    --accent-ink: #14120e;
-    --forecast: #6cc7bd;
-    --warn: #e5b04d;
-    --map-nodata: #26221a;
-    --map-line: #14120e;
+    --paper: #06101d;
+    --paper-2: #0c1a2d;
+    --ink: #e7eef9;
+    --ink-2: #9fb2cc;
+    --rule: #1e3352;
+    --accent: #86a8ff;
+    --accent-ink: #06101d;
+    --forecast: #5cc6ee;
+    --senal: #f5b544;
+    --senal-viva: #f5b544;
+    --map-nodata: #13243b;
+    --map-line: #06101d;
+    --map-casing: #06101d;
+    --grid: rgba(134, 168, 255, 0.05);
   }
 }
 
@@ -39,27 +49,34 @@
   --color-rule: var(--rule);
   --color-accent: var(--accent);
   --color-forecast: var(--forecast);
-  --font-display: var(--font-fraunces);
-  --font-sans: var(--font-plex);
-  --font-mono: var(--font-plex-mono);
+  --color-senal: var(--senal);
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-archivo);
+  --font-mono: var(--font-martian);
 }
 
 html { scroll-behavior: smooth; }
 body {
-  background: var(--paper);
+  background-color: var(--paper);
   color: var(--ink);
-  font-family: var(--font-plex), system-ui, sans-serif;
+  font-family: var(--font-archivo), system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.6;
-  /* papel con grano muy leve */
-  background-image: radial-gradient(color-mix(in srgb, var(--ink) 4%, transparent) 1px, transparent 1px);
-  background-size: 5px 5px;
+  /* retícula de plano técnico, apenas perceptible */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; transition: none !important; } }
 
-.display { font-family: var(--font-fraunces), Georgia, serif; font-optical-sizing: auto; letter-spacing: -0.02em; }
-.mono { font-family: var(--font-plex-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-.eyebrow { font-family: var(--font-plex-mono), monospace; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+/* Titulares: Archivo expandida y pesada */
+.display { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 118%; font-weight: 800; letter-spacing: -0.015em; }
+/* Cifras grandes: misma familia, números tabulares */
+.cifra { font-family: var(--font-archivo), system-ui, sans-serif; font-stretch: 112%; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+/* Etiquetas técnicas y números pequeños */
+.mono { font-family: var(--font-martian), ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 0.92em; }
+.eyebrow { font-family: var(--font-martian), monospace; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); }
 .rule-top { border-top: 2px solid var(--ink); }
 .panel { background: var(--paper-2); border: 1px solid var(--rule); }
 a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }

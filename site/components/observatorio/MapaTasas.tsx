@@ -15,8 +15,11 @@ type Props = {
   etiquetaPeriodo: string;
 };
 
-const RAMPA_CLARA = ["#f4e8c6", "#eec26b", "#e08a3c", "#c4491f", "#8e1f12", "#4d0d0f"];
-const RAMPA_OSCURA = ["#2b2418", "#5f3a1c", "#a35a22", "#dd7a30", "#ffb454", "#ffe3b0"];
+const RAMPA_CLARA = ["#eef4fb", "#c6dbf2", "#8db8e6", "#4f8fd6", "#2459b8", "#0b2a6b"];
+const RAMPA_OSCURA = ["#0d1b2e", "#163a66", "#22589c", "#3a7fd0", "#79b0f0", "#cfe4ff"];
+// Contornos de puntos calientes: halo (marino u oscuro) + línea encima, legible sobre cualquier tono de la rampa.
+const ANCHO_CAT = ["match", ["feature-state", "cat"], "persistente", 2.4, "emergente", 2.6, "en_disminucion", 1.2, 0];
+const COLOR_CAT = ["match", ["feature-state", "cat"], "emergente", "#f59e0b", "#ffffff"];
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -67,7 +70,7 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
       if (!vivo || !contenedor.current) return;
       m = new ml.Map({
         container: contenedor.current,
-        style: { version: 8, sources: {}, layers: [{ id: "fondo", type: "background", paint: { "background-color": "#e9e2d0" } }] },
+        style: { version: 8, sources: {}, layers: [{ id: "fondo", type: "background", paint: { "background-color": "#e9f0f9" } }] },
         center: [-73.2, 4.6],
         zoom: 4.3,
         minZoom: 3.4,
@@ -81,16 +84,14 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
       popup.current = new ml.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
       m.on("load", () => {
         m!.addSource("mun", { type: "geojson", data: "/data/municipios.geojson", promoteId: "c" });
-        m!.addLayer({ id: "mun-relleno", type: "fill", source: "mun", paint: { "fill-color": "#ddd5c0", "fill-opacity": 1 } });
-        m!.addLayer({ id: "mun-borde", type: "line", source: "mun", paint: { "line-color": "#f3eee3", "line-width": 0.25, "line-opacity": 0.6 } });
+        m!.addLayer({ id: "mun-relleno", type: "fill", source: "mun", paint: { "fill-color": "#dfe6f0", "fill-opacity": 1 } });
+        m!.addLayer({ id: "mun-borde", type: "line", source: "mun", paint: { "line-color": "#ffffff", "line-width": 0.25, "line-opacity": 0.6 } });
         m!.addLayer({
-          id: "mun-caliente", type: "line", source: "mun",
-          paint: {
-            "line-width": ["case", ["==", ["feature-state", "cat"], "persistente"], 2.4, ["==", ["feature-state", "cat"], "emergente"], 2.4, ["==", ["feature-state", "cat"], "en_disminucion"], 1.8, 0],
-            "line-color": ["match", ["feature-state", "cat"], "persistente", "#000000", "emergente", "#0b6e69", "en_disminucion", "#9a5b00", "#000000"],
-          },
+          id: "mun-caliente-halo", type: "line", source: "mun",
+          paint: { "line-width": ["case", ["==", ["coalesce", ["feature-state", "cat"], ""], ""], 0, 5], "line-color": "#0b1f3a" },
         });
-        m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": "#d4af00" } });
+        m!.addLayer({ id: "mun-caliente", type: "line", source: "mun", paint: { "line-width": ANCHO_CAT as never, "line-color": COLOR_CAT as never } });
+        m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": "#22d3ee" } });
         m!.on("click", "mun-relleno", (e) => {
           const c = e.features?.[0]?.properties?.c as string | undefined;
           if (c) cbSel.current(c);
@@ -129,13 +130,13 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
   useEffect(() => {
     const m = mapa.current;
     if (!m || !listo) return;
-    const sinDato = cssVar("--map-nodata", "#ddd5c0");
+    const sinDato = cssVar("--map-nodata", "#dfe6f0");
     const stops: (number | string)[] = [-1, sinDato, 0, rampa[0]];
     cortes.forEach((c, i) => stops.push(c, rampa[Math.min(i + 1, rampa.length - 1)]));
     m.setPaintProperty("mun-relleno", "fill-color", ["interpolate", ["linear"], ["coalesce", ["feature-state", "v"], -1], ...stops] as never);
-    m.setPaintProperty("mun-borde", "line-color", cssVar("--map-line", "#f3eee3"));
-    m.setPaintProperty("mun-caliente", "line-color", ["match", ["feature-state", "cat"], "persistente", tema === "oscuro" ? "#ffffff" : "#000000", "emergente", tema === "oscuro" ? "#5eead4" : "#0b6e69", "en_disminucion", tema === "oscuro" ? "#fbbf24" : "#9a5b00", "#000000"] as never);
-    m.setPaintProperty("fondo", "background-color", cssVar("--paper-2", "#ebe4d3"));
+    m.setPaintProperty("mun-borde", "line-color", cssVar("--map-line", "#ffffff"));
+    m.setPaintProperty("mun-caliente-halo", "line-color", cssVar("--map-casing", "#0b1f3a"));
+    m.setPaintProperty("fondo", "background-color", cssVar("--paper-2", "#e9f0f9"));
     const cat = new Map(cambios.map((c) => [c.cod_mpio, c.categoria]));
     for (const mu of munis) {
       const v = mu.pob > 0 ? tasas[mu.cod_mpio] ?? 0 : -1;
@@ -185,9 +186,16 @@ export default function MapaTasas({ conteos, munis, cambios, seleccionado, onSel
           </div>
         </div>
         <ul className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink2" aria-label="Contornos de puntos calientes">
-          <li><span className="mr-1 inline-block h-0.5 w-5 bg-ink align-middle" style={{ height: 3 }} />persistente</li>
-          <li><span className="mr-1 inline-block w-5 align-middle" style={{ background: tema === "oscuro" ? "#5eead4" : "#0b6e69", height: 3 }} />emergente</li>
-          <li><span className="mr-1 inline-block w-5 align-middle" style={{ background: tema === "oscuro" ? "#fbbf24" : "#9a5b00", height: 2 }} />en disminución</li>
+          {[
+            ["persistente", "#ffffff", 3],
+            ["emergente", "#f59e0b", 3],
+            ["en disminución", "#ffffff", 1],
+          ].map(([t, c, h]) => (
+            <li key={t as string}>
+              <span className="mr-1.5 inline-block w-6 align-middle" style={{ background: c as string, height: (h as number) + 4, border: "2px solid var(--map-casing)" }} />
+              {t}
+            </li>
+          ))}
         </ul>
       </figcaption>
     </figure>

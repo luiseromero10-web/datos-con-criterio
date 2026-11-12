@@ -1,6 +1,6 @@
 # Plan — Plataforma *Datos con Criterio*: varias apps, artículos, comentarios, analítica
 
-Escrito el 2026-11-12 para implementarse con Claude Sonnet. Complementa `PLAN_OBSERVATORIO.md`, que sigue siendo la fuente de verdad del caso 1.
+Escrito el 2026-11-12 para implementarse con Claude Sonnet. Revisado el 2026-11-12 con el autor: identidad visual azul (2.8) y reorientación aplazada como app futura (3). Complementa `PLAN_OBSERVATORIO.md`, que sigue siendo la fuente de verdad del caso 1.
 Las decisiones marcadas **[CONFIRMAR]** las aprueba el autor antes de empezar la fase que las usa.
 
 ---
@@ -12,8 +12,19 @@ Las decisiones marcadas **[CONFIRMAR]** las aprueba el autor antes de empezar la
 3. **Feedback** y **comentarios**.
 4. **Artículos** (uno o varios por app), anexos y no parte de la app; configurables en todas las apps.
 5. Comentarios por artículo, visibles **en la app** y en la **sección de artículos de la web principal**.
-6. Opinión sobre reorientar la app hacia utilidades más visitadas (ideas de Gemini).
+6. Opinión sobre reorientar la app hacia utilidades más visitadas (ideas de Gemini). **Decisión del autor: se aplaza; será otra app con su propio plan.**
 7. Si hace falta base de datos: el proyecto Supabase de ROMI (`romi-app`, ref `emkinfqdwjtzkkyabmyb`, sa-east-1), porque no hay cupo para uno nuevo.
+8. Identidad visual propia, en blanco y azules, común a todas las apps.
+
+### Decisiones a validar por el autor
+
+| # | Decisión | Estado |
+|---|---|---|
+| 1 | Multi-zonas (un proyecto de Vercel por app, un solo dominio) en lugar de iframes | Por validar |
+| 2 | Supabase en `romi-app` solo con objetos `dcc_`, todo a través de la función `dcc-comunidad` | Por validar |
+| 3 | Visitas con Cloudflare Web Analytics + interacción con eventos propios agregados por día | Por validar |
+| 4 | Ficha municipal y Radar SECOP | **Aplazado: app futura** |
+| 5 | Identidad visual azul (Archivo + Martian Mono), común a todas las apps | Aplicada en el sitio local; por validar |
 
 ---
 
@@ -182,9 +193,43 @@ Al recoger nombres en comentarios y, opcionalmente, contactos en el feedback, el
 
 El autor revisa ese texto; no es asesoría legal.
 
+### 2.8 Identidad visual (común a todas las apps) **[CONFIRMAR]**
+
+Ya está aplicada en el sitio local (`site/app/globals.css`, `site/app/layout.tsx`, el mapa y la serie) para validarla viéndola. En P1 se extrae a `packages/marca` y todas las apps la heredan; ninguna app define colores ni fuentes propios.
+
+**Concepto: plano técnico.** Papel blanco azulado con una retícula apenas perceptible, tinta marina, cobalto como color de marca y un único color de señal (ámbar) reservado para alertas.
+
+| Token | Claro | Oscuro | Uso |
+|---|---|---|---|
+| `--paper` | `#f7f9fc` | `#06101d` | Fondo |
+| `--paper-2` | `#e9f0f9` | `#0c1a2d` | Paneles, memo |
+| `--ink` | `#0b1f3a` | `#e7eef9` | Texto, líneas guía, serie observada |
+| `--ink-2` | `#465a76` | `#9fb2cc` | Texto secundario |
+| `--rule` | `#c8d5e8` | `#1e3352` | Bordes |
+| `--accent` | `#1f45c4` | `#86a8ff` | Marca (cobalto), enlaces, foco |
+| `--forecast` | `#0b72a8` | `#5cc6ee` | Pronóstico, disminuciones |
+| `--senal` | `#9a4508` | `#f5b544` | Texto de alerta (aumentos, atípicas altas) |
+| `--senal-viva` | `#f59e0b` | `#f5b544` | Marcas gráficas de alerta |
+
+- **Contraste verificado (WCAG AA ≥ 4,5):** todo el texto pasa sobre papel y panel en ambos temas. El mínimo es `--forecast` sobre panel claro, con 4,59. Lighthouse de accesibilidad da 100 en portada y observatorio.
+- **Mapa:** rampa secuencial azul de 6 tonos. Claro: `#eef4fb → #0b2a6b`. Oscuro: `#0d1b2e → #cfe4ff`, se ilumina hacia los valores altos.
+  Los contornos de puntos calientes llevan **halo** (línea ancha marina u oscura debajo y línea de color encima), porque ningún color único contrasta con todos los tonos de una rampa azul:
+  - persistente: blanco grueso;
+  - emergente: ámbar;
+  - en disminución: blanco fino.
+  - La selección va en cian `#22d3ee`.
+- **Tipografía:**
+  - **Archivo** (Omnibus-Type, fundición argentina), variable en ancho y peso. Titulares expandidos al 118 % y peso 800; texto al ancho normal; cifras grandes al 112 % con números tabulares.
+  - **Martian Mono** para etiquetas técnicas y números pequeños.
+  - Reemplaza la combinación serif + IBM Plex de la primera versión, que se parecía demasiado al estilo de Claude.
+- **Logotipo provisional:** cuadro cobalto + «Datos **con** Criterio», con «con» en cobalto y peso normal. Un logotipo definitivo queda para cuando haya dominio.
+- **Reglas para apps nuevas:** usar solo los tokens; el ámbar solo para alertas; los gráficos leen los colores de las variables CSS (cambian solos con el tema); nada de degradados ni sombras decorativas.
+
 ---
 
-## 3. Reorientación hacia utilidades — opinión y propuesta **[CONFIRMAR]**
+## 3. Reorientación hacia utilidades — **aplazado: será otra app**
+
+El autor decidió dejar esta línea para después, como una app nueva con su propio plan (`PLAN_<APP>.md`, empezando por su Fase 0 de verificación). Se conserva el análisis para entonces. **Nada de esta sección se implementa en las fases de este plan.**
 
 **Dónde tiene razón la idea.** Una herramienta que responde una pregunta concreta del usuario («¿cómo está mi municipio?», «¿qué licitaciones hay para lo que hago?») trae visitas recurrentes y se comparte; un observatorio solo se visita una vez.
 
@@ -199,8 +244,8 @@ El autor revisa ese texto; no es asesoría legal.
 - **FincaVigía y Termómetro de flota:** útiles, pero lejos del objetivo del autor (perfil Director/VP) y con datos dispersos.
 - «MVP en un fin de semana» es optimista para cualquiera de las cuatro con el nivel de calidad que ya tiene este repo.
 
-**Propuesta: no reemplazar, sumar una capa de utilidad a cada caso.**
-1. **Observatorio → «Ficha de mi municipio»** (Fase P5): buscador de municipio y una ficha compartible en `/seguridad/municipio/<cod>`. Muestra:
+**Propuesta (para cuando se retome): no reemplazar, sumar una capa de utilidad a cada caso.**
+1. **Observatorio → «Ficha de mi municipio»**: buscador de municipio y una ficha compartible en `/seguridad/municipio/<cod>`. Muestra:
    - tasas frente al departamento y al país;
    - tendencia y pronóstico;
    - comparación con municipios de tamaño parecido, con intervalos y lenguaje neutro.
@@ -221,18 +266,19 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - límite gratuito de invocaciones de Edge Functions;
   - Turnstile gratis;
   - límites oficiales de Cloudflare Web Analytics.
-- Presentar al autor las decisiones **[CONFIRMAR]** de este plan (2.1, 2.3, 2.5, 3) y esperar su respuesta.
+- Presentar al autor las decisiones **[CONFIRMAR]** de este plan (2.1, 2.3, 2.5, 2.8) y esperar su respuesta.
 - **Aceptación:** `docs/decisiones.md` con las cifras verificadas y las respuestas del autor.
 
 ### P1 — Monorepo y multi-zonas (local)
 - Mover `site/` a `apps/seguridad` con `basePath: "/seguridad"`. Ajustar las rutas estáticas (`/seguridad/data/municipios.geojson`, `/seguridad/vendor/maplibre/…`) y `scripts/copiar-worker.mjs`. El worker de MapLibre debe resolverse con el `basePath`.
 - Crear `apps/portal`: portada (lista de casos), `/sobre-mi` (pendiente del autor), `/privacidad` (borrador para el autor), `/articulos` (vacío por ahora), y `rewrites` a la zona de seguridad configurables por variable de entorno (`ZONA_SEGURIDAD_URL`).
-- Extraer a `packages/marca` los tokens de diseño, las fuentes y el encabezado y pie. Los enlaces entre zonas van con `<a>`.
+- Extraer a `packages/marca` la identidad de 2.8: tokens CSS (claro y oscuro), las fuentes Archivo y Martian Mono, la rampa del mapa, el encabezado y el pie. Los enlaces entre zonas van con `<a>`.
 - Actualizar el `.gitignore` (rutas nuevas de `public/vendor` y `public/data`), el CI con matriz por app (lint, tipos, build) y la configuración local de `.claude/launch.json` con las dos apps.
 - **Aceptación:**
   - con ambas apps en local (portal en 3000, seguridad en 3100), `localhost:3000/seguridad` muestra el observatorio completo a través del portal, con mapa y gráfico funcionando;
   - lint, tipos, pruebas de Python y builds en verde;
-  - Lighthouse de accesibilidad ≥ 95 en ambas.
+  - Lighthouse de accesibilidad ≥ 95 en ambas;
+  - el portal y el observatorio se ven con la misma identidad (mismos tokens y fuentes, un solo origen en `packages/marca`).
 
 ### P2 — Analítica
 - Implementar `track()` en `packages/comunidad` (lotes, `sendBeacon`, no-op si no hay URL configurada, respeta `navigator.doNotTrack`).
@@ -266,14 +312,7 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - su hilo de comentarios es el mismo en ambos lugares;
   - un `borrador` no aparece en producción.
 
-### P5 — «Ficha de mi municipio» (utilidad del observatorio)
-- Buscador con autocompletado (sin tildes ni mayúsculas) y la ruta `/seguridad/municipio/<cod>` compartible.
-- Contenido de la ficha: tasas frente al departamento y al país, tendencia, pronóstico (o el del departamento si el municipio no tiene propio), puntos calientes y semanas atípicas del municipio, y 5 municipios de población parecida.
-- Lenguaje neutro y aviso de límites visible.
-- Imagen para compartir (Open Graph) generada en el build para los municipios con volumen; para el resto, una imagen genérica.
-- **Aceptación:** abrir la URL de un municipio carga la ficha en menos de 3 s en celular (Lighthouse), y el enlace compartido muestra una vista previa correcta.
-
-### P6 — Despliegue
+### P5 — Despliegue
 - Con confirmación en cada paso:
   - push;
   - crear los proyectos de Vercel `dcc-seguridad` y `dcc-portal` (Root Directory de cada app), sus variables de entorno (URLs de zona, URL de la función, *site key* de Turnstile, *site tag* de analítica) y el deploy hook del observatorio, que el autor carga como secret `VERCEL_DEPLOY_HOOK` en GitHub;
@@ -285,8 +324,8 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - la ingesta semanal dispara el redespliegue.
   - Con esto se cierran la Fase 5 de `PLAN_OBSERVATORIO.md` y estas fases.
 
-### P7 — App 2 (Radar SECOP)
-- Plan propio (`PLAN_SECOP.md`) que empieza por su Fase 0 de verificación de fuentes. No se escribe código antes de que el autor apruebe el alcance.
+### Fuera de este plan (apps futuras)
+- **Ficha de mi municipio** y **Radar SECOP** (sección 3): cada una con su propio plan y su Fase 0, cuando el autor lo decida.
 
 ---
 
@@ -308,8 +347,9 @@ El único costo previsto sigue siendo el dominio.
 | Spam en comentarios | Turnstile, campo trampa, límite diario, moderación previa |
 | Llenar la base de ROMI | Eventos agregados por día; límites de longitud; P0 mide el uso actual |
 | Navegación entre zonas más lenta | Las páginas que se visitan juntas viven en la misma zona; entre zonas se navega con `<a>` (navegación completa, aceptable) |
-| Alcance que crece | P5 y P7 se aprueban por separado; el observatorio sigue cerrando sus fases |
+| Alcance que crece | La ficha municipal y SECOP quedan fuera de este plan; cada app nueva tiene su propio plan |
 
 ## 7. Estado
 
-- [ ] P0 · [ ] P1 · [ ] P2 · [ ] P3 · [ ] P4 · [ ] P5 · [ ] P6 · [ ] P7
+- [ ] P0 · [ ] P1 · [ ] P2 · [ ] P3 · [ ] P4 · [ ] P5
+- Identidad visual (2.8): aplicada en el sitio local, pendiente de validación del autor.
