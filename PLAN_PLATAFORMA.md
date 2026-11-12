@@ -361,5 +361,5 @@ El único costo previsto sigue siendo el dominio.
 
 ## 7. Estado
 
-- [x] P0 (verificada 2026-11-12; falta la validación del autor de las decisiones 1, 2, 3 y 5) · [x] P1 (local, verificada 2026-11-12) · [x] P2 (local, en simulación; verificada 2026-11-12) · [~] P3 (escrito y probado en local; falta aplicar la migración, desplegar la función y probar de punta a punta) · [ ] P4 · [ ] P5
+- [x] P0 (verificada 2026-11-12; falta la validación del autor de las decisiones 1, 2, 3 y 5) · [x] P1 (local, verificada 2026-11-12) · [x] P2 (local, en simulación; verificada 2026-11-12) · [x] P3 (aplicada, desplegada y probada de punta a punta en local; falta repetir con el dominio publicado en P5) · [ ] P4 · [ ] P5
 - Identidad visual (2.8): aplicada en el sitio local, pendiente de validación del autor.
