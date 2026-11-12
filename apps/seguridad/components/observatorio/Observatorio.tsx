@@ -7,7 +7,7 @@ import Filtros from "./Filtros";
 import Perezoso from "@/components/Perezoso";
 import Cifras, { type CifrasDatos } from "./Cifras";
 import { TablaAnomalias, TablaCambios } from "./Tablas";
-import { DELITOS, nombreDelito, type DelitoId } from "@/lib/delitos";
+import { DELITOS, nombreDelito, TODOS, type DelitoSel } from "@/lib/delitos";
 import type { ConteosPorDelito } from "@/lib/perfil";
 import { fechaLarga } from "@/lib/format";
 import {
@@ -44,7 +44,7 @@ export default function Observatorio() {
   const [munis, setMunis] = useState<Muni[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [delito, setDelito] = useState<DelitoId>("homicidio");
+  const [delito, setDelito] = useState<DelitoSel>(TODOS);
   const [dpto, setDpto] = useState("");
   const [mpio, setMpio] = useState("");
   const [periodoId, setPeriodoId] = useState("ult12");
@@ -106,7 +106,7 @@ export default function Observatorio() {
           hechos12: h12,
           hechosPrev12: hPrev,
           tasa12: pobTotal > 0 ? (h12 / pobTotal) * 1e5 : 0,
-          puntosCalientes: hot.filter((c) => c.categoria === "emergente" || c.categoria === "persistente").length,
+          puntosCalientes: delito === TODOS ? null : hot.filter((c) => c.categoria === "emergente" || c.categoria === "persistente").length,
           semanasAtipicas: an.length,
         });
       } catch (e) {
@@ -180,9 +180,25 @@ export default function Observatorio() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [claveAlcance, munis]);
 
+  // modo comparar: un segundo municipio (B) junto al seleccionado (A)
+  const [mpioB, setMpioB] = useState("");
+  const [eligiendoB, setEligiendoB] = useState(false);
+  const mpioBVisible = mpio && mpioB !== mpio ? mpioB : "";
+  const eligiendo = Boolean(mpio) && eligiendoB;
   const seleccionar = (cod: string) => {
+    if (eligiendo && cod !== mpio) {
+      setMpioB(cod);
+      setEligiendoB(false);
+      return;
+    }
+    setMpioB("");
+    setEligiendoB(false);
     setDpto(cod.slice(0, 2));
     setMpio(cod);
+  };
+  const limpiarComparacion = () => {
+    setMpioB("");
+    setEligiendoB(false);
   };
 
   if (error) {
@@ -197,7 +213,9 @@ export default function Observatorio() {
 
   const cargando = !meta || munis.length === 0;
   const notaPron =
-    pron.nivelUsado === "dpto" && alcance.tipo === "mpio"
+    delito === TODOS && alcance.tipo !== "nacional"
+      ? "Con «Todos los delitos» el pronóstico es la suma de los pronósticos por tipo de delito (sin intervalo propio)" + (alcance.tipo === "mpio" ? " y se muestra el de su departamento." : ".")
+      : pron.nivelUsado === "dpto" && alcance.tipo === "mpio"
       ? "Este municipio tiene pocos hechos por semana para pronosticarse por separado; se muestra el pronóstico de su departamento."
       : alcance.tipo === "nacional"
         ? "A nivel nacional se suma el pronóstico por departamento; esa suma no tiene intervalo propio."
@@ -205,7 +223,7 @@ export default function Observatorio() {
 
   return (
     <>
-      <div className="mt-8"><Filtros delito={delito} onDelito={(d) => { setDelito(d); track("filtro_delito", d); }} dpto={dpto} onDpto={(c) => { setDpto(c); setMpio(""); track("filtro_departamento", c || "pais"); }} mpio={mpio} onMpio={(c) => { setMpio(c); if (c) track("filtro_municipio"); }} periodo={periodoId} onPeriodo={(p) => { setPeriodoId(p); track("filtro_periodo", p); }} periodos={periodos} munis={munis} /></div>
+      <div className="mt-8"><Filtros delito={delito} onDelito={(d) => { setDelito(d); track("filtro_delito", d); }} dpto={dpto} onDpto={(c) => { limpiarComparacion(); setDpto(c); setMpio(""); track("filtro_departamento", c || "pais"); }} mpio={mpio} onMpio={(c) => { limpiarComparacion(); setMpio(c); if (c) track("filtro_municipio"); }} periodo={periodoId} onPeriodo={(p) => { setPeriodoId(p); track("filtro_periodo", p); }} periodos={periodos} munis={munis} /></div>
 
       <div className="mt-8"><Cifras d={cargando ? null : cifras} /></div>
 
@@ -214,7 +232,7 @@ export default function Observatorio() {
           <div className="grid h-[26rem] place-items-center border border-rule text-sm text-ink2 sm:h-[34rem]" aria-busy="true">Cargando datos…</div>
         ) : (
           <Perezoso alto="h-[26rem] sm:h-[34rem]">
-            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} delito={delito} conteosPorDelito={conteosDelitos} seleccionado={mpio} onSeleccion={(c) => { track("clic_mapa"); seleccionar(c); }} onCerrar={() => setMpio("")} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
+            <MapaTasas conteos={conteos} munis={munis} cambios={cambios} delito={delito} conteosPorDelito={conteosDelitos} seleccionado={mpio} seleccionadoB={mpioBVisible} eligiendoB={eligiendo} onComparar={() => { setMpioB(""); setEligiendoB(true); }} onCancelarComparar={() => setEligiendoB(false)} onCerrarB={limpiarComparacion} onSeleccion={(c) => { track("clic_mapa"); seleccionar(c); }} onCerrar={() => { limpiarComparacion(); setMpio(""); }} etiquetaPeriodo={periodo?.etiqueta ?? ""} />
           </Perezoso>
         )}
         <p className="mt-3 max-w-prose text-sm text-ink2">
@@ -236,7 +254,7 @@ export default function Observatorio() {
               pron={pron.puntos}
               anomalias={anoms}
               ultimaConfiable={ultima.slice(0, 10)}
-              conBanda={alcance.tipo !== "nacional"}
+              conBanda={alcance.tipo !== "nacional" && delito !== TODOS}
             />
           </Perezoso>
         </div>
@@ -244,11 +262,11 @@ export default function Observatorio() {
       </Seccion>
 
       <Seccion numero="03 · Qué cambió" titulo="Municipios con mayor variación" id="cambios">
-        <TablaCambios cambios={cambios} munis={munis} onSeleccion={(c) => { track("clic_tabla_cambios"); seleccionar(c); }} />
+        <TablaCambios cambios={cambios} munis={munis} todos={delito === TODOS} onSeleccion={(c) => { track("clic_tabla_cambios"); seleccionar(c); }} />
       </Seccion>
 
       <Seccion numero="04 · Qué se salió de lo normal" titulo="Semanas atípicas del último año" id="atipicas">
-        <TablaAnomalias anomalias={recientes} munis={munis} onSeleccion={(c) => { track("clic_tabla_atipicas"); seleccionar(c); }} />
+        <TablaAnomalias anomalias={recientes} munis={munis} todos={delito === TODOS} onSeleccion={(c) => { track("clic_tabla_atipicas"); seleccionar(c); }} />
       </Seccion>
 
       <Seccion numero="05 · Su opinión" titulo="Comentarios y feedback" id="opinion">

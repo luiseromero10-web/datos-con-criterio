@@ -20,6 +20,10 @@ type Props = {
   /** categoría de punto caliente, si la tiene */
   categoria: string;
   onCerrar: () => void;
+  /** modo comparar: empieza a elegir un segundo municipio, o lo cancela */
+  eligiendo: boolean;
+  onComparar: () => void;
+  onCancelarComparar: () => void;
 };
 
 const ETIQUETA_CAT: Record<string, string> = {
@@ -31,7 +35,7 @@ const ETIQUETA_CAT: Record<string, string> = {
 const reducirMovimiento = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Tarjeta con la «araña» del municipio: cinco ejes en percentil frente a todo el país, más los valores reales en texto. */
-export default function PerfilMunicipio({ municipio, departamento, ejes, extras, delito, categoria, onCerrar }: Props) {
+export default function PerfilMunicipio({ municipio, departamento, ejes, extras, delito, categoria, onCerrar, eligiendo, onComparar, onCancelarComparar }: Props) {
   const div = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.ECharts | null>(null);
   const tema = useTema();
@@ -115,6 +119,16 @@ export default function PerfilMunicipio({ municipio, departamento, ejes, extras,
           ×
         </button>
       </div>
+      {eligiendo ? (
+        <div className="mt-3 border border-dashed border-ink p-3 text-sm" role="status">
+          <p>Haga clic en <strong>otro municipio</strong> del mapa (o de las tablas) para compararlo con {municipio}.</p>
+          <button type="button" onClick={onCancelarComparar} className="mt-2 min-h-11 border border-rule px-3">Cancelar</button>
+        </div>
+      ) : (
+        <button type="button" onClick={onComparar} className="mt-3 min-h-11 w-full border border-ink px-3 font-medium hover:bg-paper2">
+          Comparar con otro municipio
+        </button>
+      )}
       {ETIQUETA_CAT[categoria] && <p className="mono mt-2 inline-block border border-dashed border-senal px-1.5 py-0.5 text-xs text-senal">{ETIQUETA_CAT[categoria]}</p>}
       {ejes.length < 3 && <p className="mt-3 text-sm text-ink2" role="status">Calculando el perfil por tipo de delito…</p>}
       <div ref={div} className="mt-1 h-60 w-full" role="img" aria-label={`Araña de ${municipio}: ${ejes.map((e) => `${e.nombre} percentil ${e.valor}`).join(", ")}`} />
@@ -131,7 +145,7 @@ export default function PerfilMunicipio({ municipio, departamento, ejes, extras,
       </dl>
       {extras.length > 0 && (
         <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 border-t border-rule pt-3 text-sm">
-          <dt className="col-span-2 eyebrow">En el delito elegido</dt>
+          <dt className="col-span-2 eyebrow">{delito === "todos" ? "Todos los delitos" : "En el delito elegido"}</dt>
           {extras.map((x) => (
             <div key={x.etiqueta} className="contents">
               <dt className="text-ink2">{x.etiqueta}</dt>

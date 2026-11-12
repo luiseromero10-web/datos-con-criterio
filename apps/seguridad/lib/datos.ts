@@ -1,6 +1,6 @@
 "use client";
 import { consultar, DATA_URL } from "./duck";
-import type { DelitoId } from "./delitos";
+import { TODOS, type DelitoSel } from "./delitos";
 
 export type Meta = {
   fecha_corte: string;
@@ -15,11 +15,13 @@ export type Muni = { cod_mpio: string; municipio: string; cod_dpto: string; depa
 export type Alcance = { tipo: "nacional" } | { tipo: "dpto"; cod: string } | { tipo: "mpio"; cod: string };
 export type Punto = { p: string; n: number };
 export type PuntoPron = { p: string; p10: number; p50: number; p90: number; tipo: "provisional" | "futuro" };
-export type Anomalia = { p: string; nivel: "dpto" | "mpio"; cod: string; valor: number; esperado: number; z: number; sentido: "alta" | "baja" };
+export type Anomalia = { delito?: string; p: string; nivel: "dpto" | "mpio"; cod: string; valor: number; esperado: number; z: number; sentido: "alta" | "baja" };
 export type Cambio = { cod_mpio: string; ult: number; prev: number; tasa: number; z: number; categoria: string };
 export type Periodo = { id: string; etiqueta: string; desde: string; hasta: string };
 
 const DELITO_OK = /^[a-z_]+$/;
+/** Condición SQL por delito; con «todos» no se filtra y se suma todo. */
+const porDelito = (d: DelitoSel) => (d === TODOS ? "1=1" : `delito='${seguro(d, DELITO_OK)}'`);
 const COD_OK = /^\d{2,5}$/;
 const seguro = (s: string, re: RegExp) => {
   if (!re.test(s)) throw new Error("parámetro inválido");
@@ -63,18 +65,18 @@ export function periodosDisponibles(meta: Meta): Periodo[] {
   return out;
 }
 
-export async function conteosPorMunicipio(delito: DelitoId, desde: string, hasta: string): Promise<Record<string, number>> {
+export async function conteosPorMunicipio(delito: DelitoSel, desde: string, hasta: string): Promise<Record<string, number>> {
   const f = await consultar<{ cod_mpio: string; n: number }>(
     `SELECT cod_mpio, SUM(conteo)::DOUBLE AS n FROM 'hechos_mes_mpio.parquet'
-     WHERE delito='${seguro(delito, DELITO_OK)}' AND periodo >= DATE '${desde}' AND periodo <= DATE '${hasta}' GROUP BY 1`,
+     WHERE ${porDelito(delito)} AND periodo >= DATE '${desde}' AND periodo <= DATE '${hasta}' GROUP BY 1`,
   );
   return Object.fromEntries(f.map((r) => [r.cod_mpio, Number(r.n)]));
 }
 
-export async function totalNacional(delito: DelitoId, desde: string, hasta: string): Promise<number> {
+export async function totalNacional(delito: DelitoSel, desde: string, hasta: string): Promise<number> {
   const f = await consultar<{ n: number }>(
     `SELECT COALESCE(SUM(conteo),0)::DOUBLE AS n FROM 'hechos_mes_mpio.parquet'
-     WHERE delito='${seguro(delito, DELITO_OK)}' AND periodo >= DATE '${desde}' AND periodo <= DATE '${hasta}'`,
+     WHERE ${porDelito(delito)} AND periodo >= DATE '${desde}' AND periodo <= DATE '${hasta}'`,
   );
   return Number(f[0]?.n ?? 0);
 }
@@ -89,30 +91,33 @@ function filtroAlcance(a: Alcance, tabla: "hechos" | "pred"): { join: string; wh
   return { join: "", where: `AND nivel = '${a.tipo}' AND cod = '${seguro(a.cod, COD_OK)}'` };
 }
 
-export async function serieSemanal(delito: DelitoId, a: Alcance): Promise<Punto[]> {
+export async function serieSemanal(delito: DelitoSel, a: Alcance): Promise<Punto[]> {
   const { join, where } = filtroAlcance(a, "hechos");
   const f = await consultar<{ p: string; n: number }>(
     `SELECT strftime(periodo, '%Y-%m-%d') AS p, SUM(conteo)::DOUBLE AS n FROM 'hechos_semana_mpio.parquet' ${join}
-     WHERE delito='${seguro(delito, DELITO_OK)}' ${where} GROUP BY 1 ORDER BY 1`,
+     WHERE ${porDelito(delito)} ${where} GROUP BY 1 ORDER BY 1`,
   );
   return f.map((r) => ({ p: r.p, n: Number(r.n) }));
 }
 
 export async function pronostico(
-  delito: DelitoId,
+  delito: DelitoSel,
   a: Alcance,
 ): Promise<{ puntos: PuntoPron[]; nivelUsado: "nacional" | "dpto" | "mpio" }> {
   const consulta = async (al: Alcance) => {
     const { where } = filtroAlcance(al, "pred");
-    const agg = al.tipo === "nacional";
+    // con «todos» se suman las medianas de cada delito; los intervalos no se suman (no serían un intervalo válido)
+    const agg = al.tipo === "nacional" || delito === TODOS;
     return consultar<PuntoPron>(
       `SELECT strftime(periodo, '%Y-%m-%d') AS p, ${agg ? "NULL::DOUBLE" : "p10::DOUBLE"} AS p10, SUM(p50)::DOUBLE AS p50,
               ${agg ? "NULL::DOUBLE" : "p90::DOUBLE"} AS p90, MAX(tipo) AS tipo
-       FROM 'predicciones.parquet' WHERE delito='${seguro(delito, DELITO_OK)}' ${where}
+       FROM 'predicciones.parquet' WHERE ${porDelito(delito)} ${where}
        GROUP BY periodo ${agg ? "" : ", p10, p90"} ORDER BY periodo`,
     );
   };
-  let puntos = await consulta(a);
+  // con «todos» un municipio solo tendría pronóstico para algunos delitos y la suma quedaría incompleta: se usa siempre el del departamento
+  const directo = delito === TODOS && a.tipo === "mpio";
+  let puntos = directo ? [] : await consulta(a);
   let nivelUsado: "nacional" | "dpto" | "mpio" = a.tipo;
   if (puntos.length === 0 && a.tipo === "mpio") {
     puntos = await consulta({ tipo: "dpto", cod: a.cod.slice(0, 2) });
@@ -122,25 +127,33 @@ export async function pronostico(
   return { puntos: puntos.map((r) => ({ ...r, p10: num(r.p10), p50: num(r.p50), p90: num(r.p90) })), nivelUsado };
 }
 
-export async function anomaliasDe(delito: DelitoId, a: Alcance): Promise<Anomalia[]> {
-  if (a.tipo === "nacional") return [];
+export async function anomaliasDe(delito: DelitoSel, a: Alcance): Promise<Anomalia[]> {
+  if (a.tipo === "nacional" || delito === TODOS) return []; // sumar semanas atípicas de distintos delitos no tiene sentido
   return consultar<Anomalia>(
     `SELECT strftime(periodo, '%Y-%m-%d') AS p, nivel, cod, valor::DOUBLE AS valor, esperado::DOUBLE AS esperado, z::DOUBLE AS z, sentido
      FROM 'anomalias.parquet' WHERE delito='${seguro(delito, DELITO_OK)}' AND nivel='${a.tipo}' AND cod='${seguro(a.cod, COD_OK)}' ORDER BY periodo`,
   );
 }
 
-export async function anomaliasRecientes(delito: DelitoId, desde: string, limite = 10): Promise<Anomalia[]> {
+export async function anomaliasRecientes(delito: DelitoSel, desde: string, limite = 10): Promise<Anomalia[]> {
   return consultar<Anomalia>(
-    `SELECT strftime(periodo, '%Y-%m-%d') AS p, nivel, cod, valor::DOUBLE AS valor, esperado::DOUBLE AS esperado, z::DOUBLE AS z, sentido
-     FROM 'anomalias.parquet' WHERE delito='${seguro(delito, DELITO_OK)}' AND periodo >= DATE '${desde}' ORDER BY abs(z) DESC LIMIT ${Number(limite)}`,
+    `SELECT delito, strftime(periodo, '%Y-%m-%d') AS p, nivel, cod, valor::DOUBLE AS valor, esperado::DOUBLE AS esperado, z::DOUBLE AS z, sentido
+     FROM 'anomalias.parquet' WHERE ${porDelito(delito)} AND periodo >= DATE '${desde}' ORDER BY abs(z) DESC LIMIT ${Number(limite)}`,
   );
 }
 
-export async function cambiosHotspots(delito: DelitoId): Promise<Cambio[]> {
+export async function cambiosHotspots(delito: DelitoSel): Promise<Cambio[]> {
+  if (delito === TODOS) {
+    // los puntos calientes (Gi*) se calculan por tipo de delito y no se pueden sumar: con «todos» solo se suman los conteos y no hay categoría
+    const f = await consultar<Cambio>(
+      `SELECT cod_mpio, SUM(hechos_ult12m)::DOUBLE AS ult, SUM(hechos_prev12m)::DOUBLE AS prev, SUM(tasa_ult12m)::DOUBLE AS tasa, 0::DOUBLE AS z, 'sin_patron' AS categoria
+       FROM 'hotspots.parquet' GROUP BY cod_mpio`,
+    );
+    return f.map((r) => ({ ...r, ult: Number(r.ult), prev: Number(r.prev), tasa: Number(r.tasa), z: 0 }));
+  }
   const f = await consultar<Cambio>(
     `SELECT cod_mpio, hechos_ult12m::DOUBLE AS ult, hechos_prev12m::DOUBLE AS prev, tasa_ult12m::DOUBLE AS tasa, z_ult::DOUBLE AS z, categoria
-     FROM 'hotspots.parquet' WHERE delito='${seguro(delito, DELITO_OK)}'`,
+     FROM 'hotspots.parquet' WHERE ${porDelito(delito)}`,
   );
   return f.map((r) => ({ ...r, ult: Number(r.ult), prev: Number(r.prev), tasa: Number(r.tasa), z: Number(r.z) }));
 }

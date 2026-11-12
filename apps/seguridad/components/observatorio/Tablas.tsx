@@ -2,6 +2,7 @@
 import { useMemo } from "react";
 import { decimal, entero, fechaLarga, signo } from "@/lib/format";
 import type { Anomalia, Cambio, Muni } from "@/lib/datos";
+import { nombreDelito } from "@/lib/delitos";
 
 const ETIQUETA_CAT: Record<string, string> = {
   emergente: "Emergente",
@@ -15,7 +16,7 @@ function Insignia({ cat }: { cat: string }) {
   return <span className="mono ml-2 border border-ink px-1.5 py-0.5 text-[11px] uppercase tracking-wider">{t}</span>;
 }
 
-export function TablaCambios({ cambios, munis, onSeleccion, minimo = 30 }: { cambios: Cambio[]; munis: Muni[]; onSeleccion: (cod: string) => void; minimo?: number }) {
+export function TablaCambios({ cambios, munis, onSeleccion, minimo = 30, todos = false }: { cambios: Cambio[]; munis: Muni[]; onSeleccion: (cod: string) => void; minimo?: number; todos?: boolean }) {
   const porCod = useMemo(() => new Map(munis.map((m) => [m.cod_mpio, m])), [munis]);
   const filas = useMemo(() => {
     const base = cambios.filter((c) => c.prev >= minimo).map((c) => ({ ...c, pct: (100 * (c.ult - c.prev)) / c.prev }));
@@ -55,13 +56,13 @@ export function TablaCambios({ cambios, munis, onSeleccion, minimo = 30 }: { cam
       {bloque("Más aumento (12 meses frente a los 12 anteriores)", filas.suben)}
       {bloque("Más disminución", filas.bajan)}
       <p className="text-sm text-ink2 md:col-span-2">
-        Solo municipios con al menos {minimo} denuncias en el periodo anterior, para no leer ruido de cifras pequeñas. «Emergente», «persistente» y «en disminución» vienen del análisis de puntos calientes (Gi*, FDR 5 %).
+        Solo municipios con al menos {minimo} denuncias en el periodo anterior, para no leer ruido de cifras pequeñas. {todos ? "Con «Todos los delitos» se suman los conteos; las etiquetas de punto caliente solo existen por tipo de delito." : "«Emergente», «persistente» y «en disminución» vienen del análisis de puntos calientes (Gi*, FDR 5 %)."}
       </p>
     </div>
   );
 }
 
-export function TablaAnomalias({ anomalias, munis, onSeleccion }: { anomalias: Anomalia[]; munis: Muni[]; onSeleccion: (cod: string) => void }) {
+export function TablaAnomalias({ anomalias, munis, onSeleccion, todos = false }: { anomalias: Anomalia[]; munis: Muni[]; onSeleccion: (cod: string) => void; todos?: boolean }) {
   const mp = useMemo(() => new Map(munis.map((m) => [m.cod_mpio, m])), [munis]);
   const dp = useMemo(() => new Map(munis.map((m) => [m.cod_dpto, m.departamento])), [munis]);
   return (
@@ -71,7 +72,7 @@ export function TablaAnomalias({ anomalias, munis, onSeleccion }: { anomalias: A
           const nombre = a.nivel === "dpto" ? dp.get(a.cod) : mp.get(a.cod)?.municipio;
           const depto = a.nivel === "mpio" ? mp.get(a.cod)?.departamento : "departamento";
           return (
-            <li key={`${a.p}-${a.nivel}-${a.cod}`}>
+            <li key={`${a.delito}-${a.p}-${a.nivel}-${a.cod}`}>
               <button
                 type="button"
                 onClick={() => (a.nivel === "mpio" ? onSeleccion(a.cod) : undefined)}
@@ -81,7 +82,7 @@ export function TablaAnomalias({ anomalias, munis, onSeleccion }: { anomalias: A
                 <span>
                   <span className="font-medium">{nombre ?? a.cod}</span>
                   <span className="text-ink2"> · {depto}</span>
-                  <span className="block text-xs text-ink2">Semana del {fechaLarga(a.p)}</span>
+                  <span className="block text-xs text-ink2">Semana del {fechaLarga(a.p)}{todos && a.delito ? ` · ${nombreDelito(a.delito)}` : ""}</span>
                 </span>
                 <span className="mono shrink-0 text-right text-sm">
                   <span className={a.sentido === "alta" ? "text-senal" : "text-forecast"}>{entero(a.valor)}</span>

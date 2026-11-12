@@ -266,3 +266,18 @@ Respaldo previo: etiqueta `respaldo-pre-plataforma` y rama `respaldo/observatori
 **Verificación (local):** 25 pruebas nuevas de la validación y 11 de `leerIndice` (en total, 25 del portal, 40 de `@dcc/comunidad`, 52 de `supabase`); lint, tipos y build de portal y seguridad sin errores; `npm audit` de producción sin vulnerabilidades. Pruebas de mutación: con el filtro de borradores roto falla 1 prueba y con el estado sin validar fallan 2. Navegador (desarrollo): lista y artículo con el borrador y su etiqueta, tabla sin desborde a 375 px, comentarios del artículo, y en el observatorio (visto por el portal) el bloque «Artículos sobre esta herramienta» con enlace `/articulos/ejemplo-borrador`, resumen y «Comentarios (1)» desplegable.
 **No verificado:** con el dominio publicado (P5), con un artículo real publicado de extremo a extremo, accesibilidad con axe de las páginas nuevas, ni el evento `abrir_articulo` enviado al servidor real.
 **Pendiente del autor:** escribir los artículos reales; el borrador solo es una plantilla.
+
+
+## 2026-11-12 · D27 · Observatorio: selección en 3D, araña por delito, filtro «Todos» y modo comparar
+**Entregado (local, sin publicar):** al seleccionar un municipio el mapa lo «levanta» (capa `fill-extrusion` de MapLibre, altura proporcional al tamaño del municipio y a su percentil de tasa), inclina la cámara y atenúa el resto. Una tarjeta muestra una **araña con un eje por tipo de delito** (percentil de la tasa por 100 mil frente a los demás municipios) y los valores reales. El botón «Comparar con otro municipio» superpone dos arañas, dibuja una línea entre ambos municipios con su distancia, y escribe una lectura en palabras (quién tiene más tasa y en qué delito ocurre lo contrario). El filtro de delito tiene la opción **«Todos los delitos»**, que es la inicial.
+
+**Decisiones de diseño:**
+- Se descartó una araña con ejes «cambio / agrupación / semanas atípicas»: los dos últimos casi siempre quedaban en cero y no decían nada al lector. Esos datos van como texto bajo la araña.
+- Con «Todos los delitos» se suman conteos, serie semanal y la mediana del pronóstico. **No** se suman los intervalos del pronóstico, ni las semanas atípicas por municipio, ni los puntos calientes (Gi*): se calculan por tipo de delito y sumarlos no tendría sentido; la interfaz lo dice («Puntos calientes: —, elija uno»). Con «Todos» el pronóstico de un municipio es el de su departamento, porque un municipio solo tiene pronóstico propio para algunos delitos y la suma quedaría incompleta.
+- Las semanas atípicas recientes con «Todos» mezclan delitos y cada fila indica el suyo.
+- El perfil carga los conteos de los 6 delitos solo cuando hay un municipio seleccionado (6 consultas pequeñas a los parquet en el navegador).
+- Con «reducir movimiento» activo en el sistema no hay vuelo ni animación de altura.
+- **No se agregó un evento de analítica** para «comparar»: el servidor valida los nombres de evento y hacerlo exige volver a desplegar `dcc-comunidad`. Queda como mejora posible.
+
+**Verificación (local):** 18 pruebas nuevas (`lib/perfil.test.ts`: percentiles, altura, distancia, frase de comparación, casos con ceros y pocas denuncias); tipos y lint sin errores; en el navegador, con «Todos» y con Homicidio: selección, comparación Amalfi–Tesalia (línea, distancia, dos arañas, tabla) y cambio de delito con la comparación abierta, sin errores de consola.
+**No verificado:** celular; rendimiento de la extrusión en móviles de gama baja; accesibilidad con axe de las tarjetas nuevas; el modo comparar con el enlace compartible (no se guarda en la dirección todavía).

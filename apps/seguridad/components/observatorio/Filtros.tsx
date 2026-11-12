@@ -1,10 +1,10 @@
 "use client";
-import { DELITOS, type DelitoId } from "@/lib/delitos";
+import { DELITOS, TODOS, type DelitoSel } from "@/lib/delitos";
 import type { Muni, Periodo } from "@/lib/datos";
 
 type Props = {
-  delito: DelitoId;
-  onDelito: (d: DelitoId) => void;
+  delito: DelitoSel;
+  onDelito: (d: DelitoSel) => void;
   dpto: string;
   onDpto: (c: string) => void;
   mpio: string;
@@ -27,7 +27,8 @@ export default function Filtros({ delito, onDelito, dpto, onDpto, mpio, onMpio, 
     <form className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Filtros del observatorio" onSubmit={(e) => e.preventDefault()}>
       <label className="flex flex-col gap-1">
         <span className="eyebrow">Delito</span>
-        <select className={`${campo} ${flecha}`} value={delito} onChange={(e) => onDelito(e.target.value as DelitoId)}>
+        <select className={`${campo} ${flecha}`} value={delito} onChange={(e) => onDelito(e.target.value as DelitoSel)}>
+          <option value={TODOS}>Todos los delitos</option>
           {DELITOS.map((d) => (
             <option key={d.id} value={d.id}>{d.nombre}</option>
           ))}

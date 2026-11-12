@@ -7,17 +7,25 @@ import { cssVar, useTema } from "@/lib/useTema";
 import { ruta } from "@/lib/ruta";
 import { decimal, entero } from "@/lib/format";
 import type { Cambio, Muni } from "@/lib/datos";
-import type { DelitoId } from "@/lib/delitos";
-import { alturaExtrusion, datosClave, ladoMayorM, perfilPorDelito, type ConteosPorDelito } from "@/lib/perfil";
+import { TODOS, type DelitoSel } from "@/lib/delitos";
+import { alturaExtrusion, datosClave, distanciaKm, ladoMayorM, percentil, perfilPorDelito, type ConteosPorDelito } from "@/lib/perfil";
 import PerfilMunicipio from "./PerfilMunicipio";
+import CompararMunicipios from "./CompararMunicipios";
+import { COLOR_B } from "@/lib/colores";
 
 type Props = {
   conteos: Record<string, number>;
   munis: Muni[];
   cambios: Cambio[];
-  delito: DelitoId;
+  delito: DelitoSel;
   conteosPorDelito: ConteosPorDelito;
   seleccionado: string;
+  /** segundo municipio del modo comparar ("" si no hay) */
+  seleccionadoB: string;
+  eligiendoB: boolean;
+  onComparar: () => void;
+  onCancelarComparar: () => void;
+  onCerrarB: () => void;
   onSeleccion: (cod: string) => void;
   onCerrar: () => void;
   etiquetaPeriodo: string;
@@ -58,7 +66,7 @@ function cuantil(ordenado: number[], q: number): number {
   return ordenado[i];
 }
 
-export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorDelito, seleccionado, onSeleccion, onCerrar, etiquetaPeriodo }: Props) {
+export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorDelito, seleccionado, seleccionadoB, eligiendoB, onComparar, onCancelarComparar, onCerrarB, onSeleccion, onCerrar, etiquetaPeriodo }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaMl | null>(null);
   const popup = useRef<Popup | null>(null);
@@ -120,10 +128,20 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
           paint: { "line-width": ["case", ["==", ["coalesce", ["feature-state", "cat"], ""], ""], 0, 5], "line-color": "#0b1f3a" },
         });
         m!.addLayer({ id: "mun-caliente", type: "line", source: "mun", paint: { "line-width": ANCHO_CAT as never, "line-color": COLOR_CAT as never } });
-        m!.addLayer({ id: "mun-sel", type: "line", source: "mun", paint: { "line-width": ["case", ["boolean", ["feature-state", "sel"], false], 3.5, 0], "line-color": COLOR_SELECCION } });
+        m!.addLayer({
+          id: "mun-sel", type: "line", source: "mun",
+          paint: {
+            "line-width": ["case", ["any", ["boolean", ["feature-state", "sel"], false], ["boolean", ["feature-state", "selB"], false]], 3.5, 0],
+            "line-color": ["case", ["boolean", ["feature-state", "selB"], false], COLOR_B, COLOR_SELECCION] as never,
+          },
+        });
+        // línea que une a los dos municipios del modo comparar
+        m!.addSource("enlace", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+        m!.addLayer({ id: "enlace-halo", type: "line", source: "enlace", paint: { "line-color": "#ffffff", "line-width": 5, "line-opacity": 0.85 } });
+        m!.addLayer({ id: "enlace", type: "line", source: "enlace", paint: { "line-color": COLOR_B, "line-width": 2.5, "line-dasharray": [1.5, 1.5] } });
         // municipio seleccionado «levantado» del mapa; el filtro y la altura se fijan al seleccionar
         m!.addLayer({
-          id: "mun-3d", type: "fill-extrusion", source: "mun", filter: ["==", ["get", "c"], "__ninguno__"],
+          id: "mun-3d", type: "fill-extrusion", source: "mun", filter: ["in", ["get", "c"], ["literal", ["__ninguno__"]]],
           paint: { "fill-extrusion-color": "#2459b8", "fill-extrusion-height": 0, "fill-extrusion-base": 0, "fill-extrusion-opacity": 0.96 },
         });
         m!.on("click", "mun-relleno", (e) => {
@@ -181,53 +199,84 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
     }
   }, [listo, tasas, cortes, rampa, cambios, munis, tema]);
 
-  // 3) selección: borde, atenuado del resto, extrusión 3D animada y vuelo de cámara
+  // 3) selección: borde, atenuado del resto, extrusión 3D animada y vuelo de cámara (uno o dos municipios)
   const anterior = useRef<string>("");
   const animacion = useRef(0);
   const cajas = useRef<GeoJSON.GeoJSON | null>(null);
+  const [distancia, setDistancia] = useState<number | null>(null);
   const ejes = useMemo(() => (seleccionado ? perfilPorDelito(seleccionado, munis, conteosPorDelito) : null), [seleccionado, munis, conteosPorDelito]);
-  const pctTasa = ejes?.find((e) => e.id === delito)?.valor ?? 0;
+  const ejesB = useMemo(() => (seleccionadoB ? perfilPorDelito(seleccionadoB, munis, conteosPorDelito) : null), [seleccionadoB, munis, conteosPorDelito]);
+  const pctDe = useMemo(() => {
+    const todasTasas = Object.values(tasas);
+    return (cod: string, e: typeof ejes) => {
+      if (delito !== TODOS) return e?.find((x) => x.id === delito)?.valor ?? 0;
+      return tasas[cod] !== undefined ? percentil(tasas[cod], todasTasas) : 0;
+    };
+  }, [delito, tasas]);
+  const pctA = seleccionado ? pctDe(seleccionado, ejes) : 0;
+  const pctB = seleccionadoB ? pctDe(seleccionadoB, ejesB) : 0;
+  const anteriorB = useRef<string>("");
   useEffect(() => {
     const m = mapa.current;
     if (!m || !listo) return;
     if (anterior.current) m.setFeatureState({ source: "mun", id: anterior.current }, { sel: false });
+    if (anteriorB.current) m.setFeatureState({ source: "mun", id: anteriorB.current }, { selB: false });
     if (seleccionado) m.setFeatureState({ source: "mun", id: seleccionado }, { sel: true });
-    const cambio = anterior.current !== seleccionado;
+    if (seleccionadoB) m.setFeatureState({ source: "mun", id: seleccionadoB }, { selB: true });
+    const cambio = anterior.current !== seleccionado || anteriorB.current !== seleccionadoB;
     anterior.current = seleccionado;
-    m.setPaintProperty("mun-relleno", "fill-opacity", seleccionado ? (["case", ["boolean", ["feature-state", "sel"], false], 1, 0.42] as never) : 1);
-    m.setFilter("mun-3d", ["==", ["get", "c"], seleccionado || "__ninguno__"]);
+    anteriorB.current = seleccionadoB;
+    const hay = Boolean(seleccionado);
+    const resaltado = ["any", ["boolean", ["feature-state", "sel"], false], ["boolean", ["feature-state", "selB"], false]];
+    m.setPaintProperty("mun-relleno", "fill-opacity", hay ? (["case", resaltado, 1, 0.42] as never) : 1);
+    m.setFilter("mun-3d", ["in", ["get", "c"], ["literal", [seleccionado || "__ninguno__", seleccionadoB || "__ninguno__"]]]);
 
     let cancelado = false;
     cancelAnimationFrame(animacion.current);
+    const enlace = m.getSource("enlace") as GeoJSONSource | undefined;
     if (!seleccionado) {
       m.setPaintProperty("mun-3d", "fill-extrusion-height", 0);
+      enlace?.setData({ type: "FeatureCollection", features: [] });
       if (cambio) m.easeTo({ pitch: 0, duration: sinMovimiento() ? 0 : 900 });
       return;
     }
     (async () => {
       cajas.current ??= await (m.getSource("mun") as GeoJSONSource).getData();
-      const c = cajas.current ? cajaDe(cajas.current, seleccionado) : null;
-      if (cancelado || !c) return;
-      // la altura sube desde cero hasta la que corresponde a su tasa (sin animación si la persona pide menos movimiento)
-      const meta = alturaExtrusion(pctTasa, ladoMayorM(c));
-      if (sinMovimiento() || !cambio) {
-        m.setPaintProperty("mun-3d", "fill-extrusion-height", meta);
+      const cA = cajas.current ? cajaDe(cajas.current, seleccionado) : null;
+      const cB = seleccionadoB && cajas.current ? cajaDe(cajas.current, seleccionadoB) : null;
+      if (cancelado || !cA) return;
+      const centro = (c: [number, number, number, number]): [number, number] => [(c[0] + c[2]) / 2, (c[1] + c[3]) / 2];
+      if (cB) {
+        enlace?.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [centro(cA), centro(cB)] } });
+        setDistancia(distanciaKm(centro(cA), centro(cB)));
       } else {
-        m.setPaintProperty("mun-3d", "fill-extrusion-height", 0);
+        enlace?.setData({ type: "FeatureCollection", features: [] });
+        setDistancia(null);
+      }
+      // las alturas suben desde cero hasta las que corresponden a su tasa (sin animación si la persona pide menos movimiento)
+      const hA = alturaExtrusion(pctA, ladoMayorM(cA));
+      const hB = cB ? alturaExtrusion(pctB, ladoMayorM(cB)) : 0;
+      const poner = (k: number) =>
+        m.setPaintProperty("mun-3d", "fill-extrusion-height", ["match", ["get", "c"], seleccionado, hA * k, seleccionadoB || "__ninguno__", hB * k, 0] as never);
+      if (sinMovimiento() || !cambio) {
+        poner(1);
+      } else {
+        poner(0);
         const t0 = performance.now();
         const paso = (t: number) => {
           const k = Math.min(1, (t - t0 - 600) / 1100); // empieza cuando la cámara ya va llegando
-          m.setPaintProperty("mun-3d", "fill-extrusion-height", meta * (1 - Math.pow(1 - Math.max(0, k), 3)));
+          poner(1 - Math.pow(1 - Math.max(0, k), 3));
           if (k < 1) animacion.current = requestAnimationFrame(paso);
         };
         animacion.current = requestAnimationFrame(paso);
       }
       if (!cambio) return;
+      const todo: [number, number, number, number] = cB ? [Math.min(cA[0], cB[0]), Math.min(cA[1], cB[1]), Math.max(cA[2], cB[2]), Math.max(cA[3], cB[3])] : cA;
       const ancho = contenedor.current?.clientWidth ?? 0;
-      m.fitBounds([[c[0], c[1]], [c[2], c[3]]], {
-        padding: { top: 50, bottom: 40, right: 40, left: ancho >= 640 ? 360 : 40 },
-        maxZoom: 9.2,
-        pitch: 56,
+      m.fitBounds([[todo[0], todo[1]], [todo[2], todo[3]]], {
+        padding: { top: 50, bottom: 40, right: 40, left: ancho >= 640 ? (cB ? 420 : 360) : 40 },
+        maxZoom: cB ? 8.2 : 9.2,
+        pitch: cB ? 50 : 56,
         duration: sinMovimiento() ? 0 : 1700,
       });
     })();
@@ -235,7 +284,7 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
       cancelado = true;
       cancelAnimationFrame(animacion.current);
     };
-  }, [seleccionado, listo, ejes, pctTasa]);
+  }, [seleccionado, seleccionadoB, listo, ejes, ejesB, pctA, pctB]);
 
   const leyenda = [0, ...cortes];
   return (
@@ -247,16 +296,31 @@ export default function MapaTasas({ conteos, munis, cambios, delito, conteosPorD
           aria-label="Mapa de municipios de Colombia coloreados por tasa de denuncias. La misma información está en las tablas y en los filtros."
           className="h-[26rem] w-full border border-rule sm:h-[34rem]"
         />
-        {ejes && seleccionado && porCod.get(seleccionado) && (
-          <PerfilMunicipio
-            municipio={porCod.get(seleccionado)!.municipio}
-            departamento={porCod.get(seleccionado)!.departamento}
-            ejes={ejes}
-            extras={datosClave(seleccionado, cambios)}
-            delito={delito}
-            categoria={cambios.find((c) => c.cod_mpio === seleccionado)?.categoria ?? ""}
-            onCerrar={onCerrar}
+        {ejes && seleccionado && porCod.get(seleccionado) && seleccionadoB && porCod.get(seleccionadoB) ? (
+          <CompararMunicipios
+            a={{ nombre: porCod.get(seleccionado)!.municipio, departamento: porCod.get(seleccionado)!.departamento, ejes }}
+            b={{ nombre: porCod.get(seleccionadoB)!.municipio, departamento: porCod.get(seleccionadoB)!.departamento, ejes: ejesB ?? [] }}
+            distanciaKm={seleccionadoB ? distancia : null}
+            onSalir={onCerrarB}
+            onCambiarB={onComparar}
           />
+        ) : (
+          ejes &&
+          seleccionado &&
+          porCod.get(seleccionado) && (
+            <PerfilMunicipio
+              municipio={porCod.get(seleccionado)!.municipio}
+              departamento={porCod.get(seleccionado)!.departamento}
+              ejes={ejes}
+              extras={datosClave(seleccionado, cambios, delito !== TODOS)}
+              delito={delito}
+              categoria={cambios.find((c) => c.cod_mpio === seleccionado)?.categoria ?? ""}
+              onCerrar={onCerrar}
+              eligiendo={eligiendoB}
+              onComparar={onComparar}
+              onCancelarComparar={onCancelarComparar}
+            />
+          )
         )}
         {!listo && (
           <div className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-ink2" aria-live="polite">

@@ -8,4 +8,7 @@ export const DELITOS = [
 ] as const;
 
 export type DelitoId = (typeof DELITOS)[number]["id"];
-export const nombreDelito = (id: string) => DELITOS.find((d) => d.id === id)?.nombre ?? id;
+/** Lo que elige la persona en el filtro: un delito, o la suma de todos. */
+export type DelitoSel = DelitoId | "todos";
+export const TODOS = "todos" as const;
+export const nombreDelito = (id: string) => (id === TODOS ? "Todos los delitos" : (DELITOS.find((d) => d.id === id)?.nombre ?? id));

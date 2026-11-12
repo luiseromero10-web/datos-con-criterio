@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alturaExtrusion, cambioRelativo, datosClave, ladoMayorM, percentil, perfilPorDelito } from "./perfil";
+import { alturaExtrusion, cambioRelativo, datosClave, distanciaKm, fraseComparacion, ladoMayorM, percentil, perfilPorDelito, type EjePerfil } from "./perfil";
 
 const munis = [
   { cod_mpio: "05001", municipio: "A", cod_dpto: "05", departamento: "X", pob: 1000 },
@@ -81,5 +81,39 @@ describe("alturaExtrusion", () => {
 describe("ladoMayorM", () => {
   it("mide en metros y toma el lado mayor", () => {
     expect(ladoMayorM([-75, 4, -74.9, 4.2])).toBeCloseTo(0.2 * 110574, -2);
+  });
+});
+
+describe("distanciaKm", () => {
+  it("calcula distancias razonables", () => {
+    expect(distanciaKm([0, 0], [0, 0])).toBe(0);
+    expect(distanciaKm([-74.08, 4.61], [-75.57, 6.25])).toBeGreaterThan(220); // Bogotá–Medellín ≈ 240 km
+    expect(distanciaKm([-74.08, 4.61], [-75.57, 6.25])).toBeLessThan(260);
+  });
+});
+
+const eje = (id: string, nombre: string, tasa: number, hechos = 100): EjePerfil => ({ id: id as EjePerfil["id"], nombre, tasa, hechos, valor: 50, real: "" });
+describe("fraseComparacion", () => {
+  const a = [eje("homicidio", "Homicidio", 10), eje("lesiones", "Lesiones personales", 100)];
+  const b = [eje("homicidio", "Homicidio", 30), eje("lesiones", "Lesiones personales", 40)];
+  it("dice quién tiene más tasa total y la excepción", () => {
+    const f = fraseComparacion("A", "B", a, b);
+    expect(f[0]).toBe("En conjunto, A tiene una tasa de denuncias 1,6 veces la de B.");
+    expect(f[1]).toBe("La excepción es «Homicidio»: ahí B supera a A (3 veces).");
+  });
+  it("es simétrico: cambiar el orden cambia quién va primero", () => {
+    expect(fraseComparacion("B", "A", b, a)[0]).toBe("En conjunto, A tiene una tasa de denuncias 1,6 veces la de B.");
+  });
+  it("sin excepción", () => {
+    const c = [eje("homicidio", "Homicidio", 1), eje("lesiones", "Lesiones personales", 1)];
+    expect(fraseComparacion("A", "B", a, c)[1]).toBe("A está por encima de B en todos los tipos de delito.");
+  });
+  it("maneja ceros", () => {
+    const cero = [eje("homicidio", "Homicidio", 0, 0), eje("lesiones", "Lesiones personales", 0, 0)];
+    expect(fraseComparacion("A", "B", cero, cero)).toEqual(["Ninguno de los dos municipios registra denuncias en el periodo."]);
+    expect(fraseComparacion("A", "B", a, cero)[0]).toBe("A registra denuncias y B no registra ninguna.");
+  });
+  it("avisa cuando hay pocas denuncias", () => {
+    expect(fraseComparacion("A", "B", a, [eje("homicidio", "Homicidio", 5, 3)]).at(-1)).toMatch(/inestable/);
   });
 });

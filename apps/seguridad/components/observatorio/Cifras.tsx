@@ -4,7 +4,8 @@ export type CifrasDatos = {
   hechos12: number;
   hechosPrev12: number;
   tasa12: number;
-  puntosCalientes: number;
+  /** null cuando se ven todos los delitos: los puntos calientes se calculan por tipo de delito */
+  puntosCalientes: number | null;
   semanasAtipicas: number;
 };
 
@@ -39,7 +40,7 @@ export default function Cifras({ d }: { d: CifrasDatos | null }) {
     <dl className="grid grid-cols-2 gap-x-6 gap-y-6 lg:grid-cols-4">
       <Cifra etiqueta="Denuncias, 12 meses" valor={entero(d.hechos12)} nota={`${signo(variacion)} frente a los 12 meses anteriores`} />
       <Cifra etiqueta="Tasa nacional" valor={decimal(d.tasa12)} nota="por 100 000 habitantes" />
-      <Cifra etiqueta="Puntos calientes" valor={entero(d.puntosCalientes)} nota="municipios emergentes o persistentes" />
+      <Cifra etiqueta="Puntos calientes" valor={d.puntosCalientes === null ? "—" : entero(d.puntosCalientes)} nota={d.puntosCalientes === null ? "se calculan por tipo de delito: elija uno" : "municipios emergentes o persistentes"} />
       <Cifra etiqueta="Semanas atípicas" valor={entero(d.semanasAtipicas)} nota="en el último año, entre departamentos y municipios" />
     </dl>
   );
