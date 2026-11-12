@@ -101,3 +101,9 @@ Casos coherentes: Cota, Funza y Mosquera (Sabana de Occidente) en hurto a person
 Limitaciones: la FDR es conservadora y las tasas tienen cola larga, por eso hay pocos puntos calientes y **ningún punto frío**. Un caso débil: Nariño (52480), hurto a personas "emergente" con solo 20 hechos.
 Se usó el Queen directo del MGN simplificado (~55 m): sin huecos relevantes. Mi primer intento de tolerancia con buffer fue un error de mi script y no hizo falta.
 Integración: `ingesta.yml` descarga el MGN solo si falta (caché `mgn-2018-v1`), corre anomalías y hotspots antes de validar; `validaciones.py` revisa categorías, rangos y cobertura.
+
+## 2026-11-12 · D16 · El MGN se lee de R2 en Actions (el DANE rechaza los runners)
+La primera ingesta con Fase 4 (run 43127891663) falló en la descarga del MGN: `SSLEOFError: UNEXPECTED_EOF_WHILE_READING` contra `portalgis.dane.gov.co`.
+Desde el equipo del autor la misma llamada funciona y el certificado es válido (Sectigo, vence 2027-02), por lo que no es de certificado; lo más probable es que el servidor corte las conexiones de los centros de datos de GitHub (no confirmado).
+Decisión: copia fija del MGN 2018 en R2 (`ref/mgn_municipios_2018.geojson`, 8,6 MB, vigencia que no cambia). `pipelines/seguridad/mgn.py` lee de R2 por defecto (`MGN_URL` para cambiarla) y `--desde-dane` refresca desde la fuente oficial para volver a subirla.
+Lección repetida: probar cada paso nuevo en Actions antes de darlo por bueno; los fallos que no se ven en local son de entorno.
