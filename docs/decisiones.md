@@ -81,3 +81,7 @@ corre `predecir.py`, valida (incluye coherencia de intervalos) y publica `gold/p
 La primera corrida de ingesta con predicciones (run 43119752872) publicó las 9 808 filas como `futuro`: `predecir.py` leía `fecha_corte` de `metadatos.json`, que en un servidor limpio aún no existe en ese paso.
 En local no se veía porque el archivo quedaba de corridas anteriores. Ahora `fecha_corte()` se calcula desde silver y `marcar_tipo()` tiene prueba. Hasta relanzar la ingesta, `gold/predicciones.parquet` en R2 tiene el campo `tipo` incorrecto (los demás campos son correctos).
 Lección: probar los pasos de Actions sin los archivos residuales del equipo local.
+
+## 2026-11-11 · D14 · MGN resuelto
+Polígonos municipales del MGN 2018 desde el servicio ArcGIS del DANE (ver docs/fuentes.md). Verificado: 1 122 polígonos únicos, sin geometrías vacías, códigos = DIVIPOLA salvo 94663 (solo MGN) y 27493 (solo DIVIPOLA), ambos sin hechos.
+Pendiente para la Fase 4: instalar geopandas/libpysal/esda y validar geometrías y contigüidad Queen (con tolerancia por la simplificación).

@@ -67,10 +67,12 @@ No está en datos.gov.co como conjunto nacional; solo hay conjuntos de municipio
 
 Nota: las series de 2005-2017 y 2018-2042 son de la misma base pero hay que verificar que empalmen sin salto en 2017-2018. No he descargado los archivos todavía.
 
-### Marco Geoestadístico Nacional (MGN)
-**Pendiente.** No pude confirmar la URL exacta ni la vigencia más reciente; el Geoportal del DANE (`geoportal.dane.gov.co`, "Descarga y metadatos")
-tiene un selector de vigencia. El DANE describe 1 101 municipios + áreas no municipalizadas + San Andrés. Opciones:
-(a) que usted lo descargue del geoportal y lo deje en `data/raw/`; (b) buscar una versión simplificada en datos.gov.co o IGAC. Necesito su decisión.
+### Marco Geoestadístico Nacional (MGN) — resuelto el 2026-11-11
+Capa **Municipio del MGN Integrado, versión 2018**, publicada por el DANE y enlazada desde datos.gov.co (`dnxb-k5pj`, "federated_href"):
+`https://portalgis.dane.gov.co/mparcgis/rest/services/MGN2018/Serv_CapaMunicipiosInt_2018/MapServer/0` (ArcGIS REST; admite GeoJSON; 1 122 polígonos, `MPIO_CDPMP` = código DIVIPOLA).
+Se descarga con `pipelines/seguridad/mgn.py` (WGS84, simplificación de servidor de ~55 m, solo 4 campos): 8,6 MB en `data/raw/mgn_municipios_2018.geojson`.
+Diferencias con DIVIPOLA: el MGN trae `94663` (Mapiripana) y no `27493` (Nuevo Belén de Bajirá, creado después de 2018). **Ninguno tiene hechos en los datos**, así que no afectan a los resultados.
+Limitación: es la vigencia 2018; los límites de municipios creados o modificados desde entonces no están. Para contigüidad y mapa es suficiente.
 
 ## 5. Recomendación de alcance (para confirmar)
 
