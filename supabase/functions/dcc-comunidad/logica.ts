@@ -47,7 +47,7 @@ export function limpiarTexto(entrada: unknown, min: number, max: number): string
   const t = entrada
     .replace(/\r\n?/g, "\n")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "")
-    .replace(/[‪-‮⁦-⁩​-‍﻿]/g, "")
+    .replace(/[\u202A-\u202E\u2066-\u2069\u200B-\u200D\uFEFF]/g, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
   return t.length >= min && t.length <= max ? t : null;

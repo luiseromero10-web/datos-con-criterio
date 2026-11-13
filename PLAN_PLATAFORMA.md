@@ -63,7 +63,7 @@ Diseño:
 - `dcc-portal` (proyecto Vercel): la web principal. Portada, casos, **artículos**, «Sobre mí», privacidad. Es la zona por defecto.
 - `dcc-seguridad` (proyecto Vercel): el observatorio, con `basePath: "/seguridad"`. El portal reescribe `/seguridad/:path*` hacia el dominio de `dcc-seguridad`.
 - Cada app futura (p. ej. `dcc-secop`) es otra zona: un proyecto nuevo y una línea de `rewrites` en el portal.
-- Mientras no se compre `luiseromero.com`, el portal vive en `dcc-portal.vercel.app` y las reescrituras apuntan a `dcc-seguridad.vercel.app`.
+- Mientras no se compre `luiseromero.com`, el portal vive en `dcc-portal-five.vercel.app` (`dcc-portal.vercel.app` ya era de otra cuenta de Vercel) y las reescrituras apuntan a `dcc-seguridad.vercel.app`.
 - **Iframe solo como extra**: una ruta `/embed` en cada app (vista compacta) para incrustarla en sitios de terceros si algún día hace falta.
 
 ### 2.2 Estructura del repositorio: monorepo con espacios de trabajo npm
@@ -326,7 +326,7 @@ Reglas de siempre: español; una fase a la vez; verificar los criterios ejecutan
   - crear los proyectos de Vercel `dcc-seguridad` y `dcc-portal` (Root Directory de cada app), sus variables de entorno (URLs de zona, URL de la función, *site key* de Turnstile, *site tag* de analítica) y el deploy hook del observatorio, que el autor carga como secret `VERCEL_DEPLOY_HOOK` en GitHub;
   - restringir el CORS de R2 a los dominios reales.
 - **Aceptación:**
-  - `dcc-portal.vercel.app/seguridad` sirve el observatorio;
+  - `dcc-portal-five.vercel.app/seguridad` sirve el observatorio;
   - comentarios, feedback y eventos funcionan de punta a punta en producción;
   - Lighthouse de accesibilidad ≥ 95;
   - la ingesta semanal dispara el redespliegue.

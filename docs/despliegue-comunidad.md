@@ -32,7 +32,7 @@ La migración está hecha para no disparar ninguno: funciones `SECURITY INVOKER`
 
 1. En el panel de Cloudflare, **Turnstile → Add widget**.
 2. Nombre: `datos-con-criterio`. Modo: **Managed**.
-3. Hostnames (los sitios que pueden mostrar el widget): `dcc-portal.vercel.app`, `luiseromero.com` cuando exista, y `localhost` si quiere probar el modo real en su equipo.
+3. Hostnames (los sitios que pueden mostrar el widget): `dcc-portal-five.vercel.app`, `luiseromero.com` cuando exista, y `localhost` si quiere probar el modo real en su equipo.
 4. Copie la **Site key** (pública, va en las apps) y la **Secret key** (privada, va solo en Supabase). **No pegue la clave secreta en el chat ni en ningún archivo del repositorio.**
 
 ## 3. Secretos de la función (Supabase → Edge Functions → Secrets)
@@ -41,7 +41,7 @@ La migración está hecha para no disparar ninguno: funciones `SECURITY INVOKER`
 |---|---|
 | `TURNSTILE_SECRET` | La clave secreta del paso anterior |
 | `DCC_SAL_HASH` | Un texto aleatorio largo (mínimo 32 caracteres). Para generarlo en PowerShell: `$b = New-Object byte[] 36; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)` |
-| `DCC_ORIGENES` | Los sitios permitidos, separados por comas, sin espacios: `https://dcc-portal.vercel.app,https://luiseromero.com,http://localhost:3000`. Admite `*` dentro de un segmento, para las vistas previas: `https://dcc-portal-*.vercel.app` |
+| `DCC_ORIGENES` | Los sitios permitidos, separados por comas, sin espacios: `https://dcc-portal-five.vercel.app,https://luiseromero.com,http://localhost:3000`. Admite `*` dentro de un segmento, para las vistas previas: `https://dcc-portal-*.vercel.app` |
 
 Los secretos de funciones pertenecen al proyecto entero. Hoy `romi-app` no tiene ninguna otra función, así que no hay otra que pueda leerlos.
 
