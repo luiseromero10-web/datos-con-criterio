@@ -53,6 +53,12 @@ def data(tmp_path):
     pd.DataFrame({"nit": [1, 2, 3], "anio": [2023, 2024, 2024], "activo_total": [1, 2, 3]}).to_parquet(gold / "estados.parquet")
     pd.DataFrame({"nit": [1, 2], "anio": [2024, 2024]}).to_parquet(gold / "empresas_anio.parquet")
     pd.DataFrame({"nit": [1, 2]}).to_parquet(gold / "empresas.parquet")
+    for nombre in pub.ARCHIVOS:  # el resto de las tablas del gold (Fase 3): contenido mínimo
+        if not (gold / nombre).exists():
+            if nombre.endswith(".json"):
+                (gold / nombre).write_text("{}", encoding="utf-8")
+            else:
+                pd.DataFrame({"nit": [1]}).to_parquet(gold / nombre)
     (tmp_path / "bronze").mkdir()
     (tmp_path / "bronze" / "_meta.json").write_text(json.dumps({"esf": 111, "caratula": 222}), encoding="utf-8")
     return tmp_path
@@ -64,7 +70,8 @@ def claves(s3, prefijo):
 
 def test_metadatos_traen_hashes_fuentes_y_licencia(data):
     m = pub.construir_metadatos(data, {"nucleo_minimo": 0.96})
-    assert m["anios"] == [2023, 2024] and m["filas"] == {"estados": 3, "empresas_anio": 2, "empresas": 2}
+    assert m["anios"] == [2023, 2024] and m["filas"]["estados"] == 3 and m["filas"]["empresas_anio"] == 2 and m["filas"]["empresas"] == 2
+    assert {"indicadores", "pares", "senales", "sector_anio", "sector_resumen", "ciiu"} <= set(m["filas"])
     assert set(m["archivos"]) == set(pub.ARCHIVOS) and len(m["archivos"]["estados.parquet"]["sha256"]) == 64
     assert m["fuentes"]["esf"] == {"id": "pfdp-zks5", "actualizado": 111}
     assert m["licencia"] == "CC BY-SA 4.0" and "Superintendencia de Sociedades" in m["atribucion"] and m["calidad"]["nucleo_minimo"] == 0.96
@@ -74,8 +81,9 @@ def test_publicacion_completa_deja_gold_y_borra_staging(data):
     s3 = S3Falso()
     meta = pub.construir_metadatos(data)
     publicadas = pub.publicar(s3, "bucket", data, meta, "42")
-    assert claves(s3, "finanzas/gold/") == [
-        "finanzas/gold/empresas.parquet", "finanzas/gold/empresas_anio.parquet", "finanzas/gold/estados.parquet", "finanzas/gold/metadatos.json"]
+    esperado = sorted([f"finanzas/gold/{a}" for a in pub.ARCHIVOS] + ["finanzas/gold/metadatos.json"])
+    assert claves(s3, "finanzas/gold/") == esperado
+    assert "finanzas/gold/catalogos.json" in esperado and "finanzas/gold/indicadores.parquet" in esperado
     assert claves(s3, "finanzas/staging/") == []
     assert publicadas[-1] == "finanzas/gold/metadatos.json"  # los metadatos se escriben al final
     assert s3.objetos["finanzas/gold/estados.parquet"] == (data / "gold" / "estados.parquet").read_bytes()

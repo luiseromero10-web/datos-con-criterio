@@ -26,7 +26,9 @@ from pipelines.finanzas.config import CONJUNTOS, DATA, GRANDES
 load_dotenv()
 
 PREFIJO = "finanzas"
-ARCHIVOS = ("estados.parquet", "empresas_anio.parquet", "empresas.parquet")
+from pipelines.finanzas.analisis import ARCHIVOS_FASE3
+
+ARCHIVOS = ("estados.parquet", "empresas_anio.parquet", "empresas.parquet", *ARCHIVOS_FASE3)
 TIPOS = {".parquet": "application/vnd.apache.parquet", ".json": "application/json"}
 CACHE = "public, max-age=300"
 ATRIBUCION = ("Superintendencia de Sociedades (estados financieros NIIF reportados por las sociedades), datos.gov.co, "
@@ -54,7 +56,7 @@ def construir_metadatos(data: Path = DATA, metricas: dict | None = None) -> dict
         "corrida": os.environ.get("GITHUB_RUN_ID", "local"),
         "commit": os.environ.get("GITHUB_SHA", "local"),
         "anios": sorted(int(a) for a in e["anio"].unique()),
-        "filas": {a.removesuffix(".parquet"): pq.ParquetFile(gold / a).metadata.num_rows for a in ARCHIVOS},
+        "filas": {a.removesuffix(".parquet"): pq.ParquetFile(gold / a).metadata.num_rows for a in ARCHIVOS if a.endswith(".parquet")},
         "fuentes": {c: {"id": i, "actualizado": meta_bronze.get(c)} for c, i in ids.items()},
         "archivos": {a: {"bytes": (gold / a).stat().st_size, "sha256": sha256(gold / a)} for a in ARCHIVOS},
         "calidad": metricas or {},
@@ -86,7 +88,7 @@ def publicar(s3, bucket: str, data: Path, meta: dict, corrida: str) -> list[str]
     for nombre in ARCHIVOS:  # la copia ocurre en el servidor: rápida, y gold no se toca si algo falló antes
         destino = f"{PREFIJO}/gold/{nombre}"
         s3.copy_object(Bucket=bucket, Key=destino, CopySource={"Bucket": bucket, "Key": f"{staging}/{nombre}"},
-                       ContentType=TIPOS[".parquet"], CacheControl=CACHE, MetadataDirective="REPLACE")
+                       ContentType=TIPOS[Path(nombre).suffix], CacheControl=CACHE, MetadataDirective="REPLACE")
         publicadas.append(destino)
     clave_meta = f"{PREFIJO}/gold/metadatos.json"
     s3.put_object(Bucket=bucket, Key=clave_meta, Body=json.dumps(meta, ensure_ascii=False, indent=2).encode("utf-8"),

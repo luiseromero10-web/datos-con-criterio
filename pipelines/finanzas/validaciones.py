@@ -14,11 +14,16 @@ import sys
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 import pandera.pandas as pa
 
+from pipelines.finanzas import analisis as an
 from pipelines.finanzas import calidad as cal
+from pipelines.finanzas import catalogos
 from pipelines.finanzas import conceptos as cp
+from pipelines.finanzas import indicadores as ind_
+from pipelines.finanzas import senales as sen_
 from pipelines.finanzas.config import CONJUNTOS, DATA
 from pipelines.finanzas.transformar import OPINIONES
 
@@ -193,6 +198,70 @@ def validar_gold(data: Path, anios: list[int]) -> tuple[list[str], list[str], di
     return problemas, avisos, metricas
 
 
+MAX_SIN_PARES = 0.05  # desde 2020 (el CIIU de la carátula es propio) casi todas las sociedades deben tener pares
+PRIMER_ANIO_CON_CIIU = 2020
+
+
+def validar_fase3(data: Path, anios: list[int]) -> list[str]:
+    """Tablas de indicadores, pares, señales y sector."""
+    gold = data / "gold"
+    problemas: list[str] = []
+    faltan = [f for f in an.ARCHIVOS_FASE3 if not (gold / f).exists()]
+    if faltan:
+        return [f"Fase 3: faltan {faltan}; ¿corrió analisis.py?"]
+    e = pd.read_parquet(gold / "estados.parquet", columns=["nit", "anio"])
+    i = pd.read_parquet(gold / "indicadores.parquet")
+    p = pd.read_parquet(gold / "pares.parquet")
+    s = pd.read_parquet(gold / "senales.parquet")
+    sa = pd.read_parquet(gold / "sector_anio.parquet")
+    sr = pd.read_parquet(gold / "sector_resumen.parquet")
+
+    for nombre, t in (("indicadores", i), ("pares", p), ("senales", s)):
+        if len(t) != len(e) or t.duplicated(["nit", "anio"]).any() or not t[["nit", "anio"]].merge(e, how="outer", indicator=True)["_merge"].eq("both").all():
+            problemas.append(f"Fase 3 {nombre}: debe tener exactamente una fila por sociedad y año de estados.")
+    faltan_ipc = sorted(set(anios) - set(catalogos.ipc()["anio"]))
+    if faltan_ipc:
+        problemas.append(f"Fase 3: falta el IPC de {faltan_ipc} en pipelines/finanzas/referencia/ipc_anual.csv (ver catalogos.py).")
+
+    valores = i[list(ind_.IDS)]
+    if np.isinf(valores.to_numpy(dtype="float64", na_value=np.nan)).any():
+        problemas.append("Fase 3 indicadores: hay valores infinitos (la división segura debía evitarlos).")
+    for ident in ind_.IDS:
+        incoherentes = int((i[ident].isna() != i[f"{ident}_motivo"].notna()).sum())
+        if incoherentes:
+            problemas.append(f"Fase 3 {ident}: {incoherentes} filas con valor y motivo (o sin ninguno de los dos).")
+        desconocidos = set(i[f"{ident}_motivo"].dropna()) - set(ind_.MOTIVOS)
+        if desconocidos:
+            problemas.append(f"Fase 3 {ident}: motivos desconocidos {sorted(desconocidos)}.")
+
+    pct = p[[c for c in p.columns if c.startswith("pct_")]]
+    if len(pct.columns) != len(ind_.IDS) or not pct.stack().between(0, 100).all():
+        problemas.append("Fase 3 pares: percentiles fuera de 0–100 o incompletos.")
+    hay = p["nivel_pares"] != "ninguno"
+    if (p.loc[hay, "n_pares"] < 15).any() or (p.loc[~hay, "n_pares"].notna()).any():
+        problemas.append("Fase 3 pares: grupos con menos de 15 sociedades o tamaño sin grupo.")
+    sin = p[p["anio"] >= PRIMER_ANIO_CON_CIIU].assign(sin=lambda t: t["nivel_pares"] == "ninguno").groupby("anio")["sin"].mean()
+    for anio, fr in sin.items():
+        if fr > MAX_SIN_PARES:
+            problemas.append(f"Fase 3 pares: el {fr:.1%} de las sociedades de {anio} no tiene grupo de pares (máximo {MAX_SIN_PARES:.0%}).")
+
+    marcas = s[list(sen_.IDS)]
+    if not (s["n_senales"] == marcas.sum(axis=1)).all() or not s["n_senales"].between(0, len(sen_.IDS)).all():
+        problemas.append("Fase 3 señales: `n_senales` no coincide con las señales verdaderas.")
+
+    q = sa[["p05", "p25", "p50", "p75", "p95"]]
+    if not ((q["p05"] <= q["p25"]) & (q["p25"] <= q["p50"]) & (q["p50"] <= q["p75"]) & (q["p75"] <= q["p95"])).all() or (sa["n"] < 15).any():
+        problemas.append("Fase 3 sector: cuantiles desordenados o grupos con menos de 15 sociedades.")
+    if (sr["n_empresas"] < 15).any() or sr["nombre"].isna().any():
+        problemas.append("Fase 3 sector: grupos con menos de 15 sociedades o sin nombre CIIU.")
+
+    for f in gold.glob("*.parquet"):  # el puntaje de Altman es individual y no se publica (decisión del autor)
+        columnas = [c for c in pd.read_parquet(f).columns if "altman" in c.lower()]
+        if columnas:
+            problemas.append(f"Fase 3: {f.name} publica {columnas}; el Z'' de Altman es un puntaje individual de riesgo.")
+    return problemas
+
+
 def validar(data: Path = DATA) -> tuple[list[str], list[str], dict]:
     anios = anios_presentes(data)
     problemas = validar_bronze(data, anios)
@@ -201,6 +270,7 @@ def validar(data: Path = DATA) -> tuple[list[str], list[str], dict]:
     problemas += validar_silver(data)
     p, avisos, metricas = validar_gold(data, anios)
     problemas += p
+    problemas += validar_fase3(data, anios)
     if os.environ.get("FORZAR_FALLO") == "1":
         problemas.append("Fallo forzado (FORZAR_FALLO=1) para probar el flujo de alerta.")
     return problemas, avisos, metricas

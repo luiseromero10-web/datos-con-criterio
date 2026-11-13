@@ -254,4 +254,4 @@ Trabajar fase por fase. Al terminar cada una: verificar sus criterios ejecutando
 
 ## 11. Estado
 
-- [x] Fase 0 (2026-11-12, confirmada por el autor; ver docs/finanzas/fuentes.md y decisiones.md) · [x] Fase 1 (2026-11-12, local; ver docs/finanzas/calidad_fase1.md y decisiones.md F5) · [x] Fase 2 (2026-11-12; corrida manual publicada en R2 y fallo forzado sin publicar, ver decisiones.md F7 y F8) · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
+- [x] Fase 0 (2026-11-12, confirmada por el autor; ver docs/finanzas/fuentes.md y decisiones.md) · [x] Fase 1 (2026-11-12, local; ver docs/finanzas/calidad_fase1.md y decisiones.md F5) · [x] Fase 2 (2026-11-12; corrida manual publicada en R2 y fallo forzado sin publicar, ver decisiones.md F7 y F8) · [~] Fase 3 (hecha en local 2026-11-13; falta que el autor coteje las 5 empresas con el SIIS, ver docs/finanzas/revision_5_empresas.md y decisiones.md F9) · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7

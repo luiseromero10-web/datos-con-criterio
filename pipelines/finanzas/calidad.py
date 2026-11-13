@@ -87,8 +87,9 @@ def contacto(data: Path) -> list[str]:
     """Hallazgos de datos de contacto: debe volver vacía."""
     malos: list[str] = []
     permitidas = {cp.clave(v) for v in cp.CAMPOS_CARATULA.values()}
-    car = pd.concat([pd.read_parquet(f, columns=["concepto"]) for f in sorted((data / "bronze" / "caratula").glob("anio=*.parquet"))])
-    for c in car["concepto"].unique():
+    archivos = sorted((data / "bronze" / "caratula").glob("anio=*.parquet"))
+    conceptos = set().union(*(set(pd.read_parquet(f, columns=["concepto"])["concepto"]) for f in archivos)) if archivos else set()
+    for c in sorted(conceptos):
         if cp.clave(c) not in permitidas:
             malos.append(f"bronze/caratula: rubro fuera de la lista blanca: {c}")
     for capa in ("silver", "gold"):

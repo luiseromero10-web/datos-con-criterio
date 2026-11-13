@@ -73,6 +73,7 @@ jobs:
       - run: uv run python -m pipelines.finanzas.referencias
       - run: uv run python -m pipelines.finanzas.ingesta
       - run: uv run python -m pipelines.finanzas.transformar
+      - run: uv run python -m pipelines.finanzas.analisis
       - name: Validar (si falla, no se publica)
         run: uv run python -m pipelines.finanzas.validaciones
         env:
