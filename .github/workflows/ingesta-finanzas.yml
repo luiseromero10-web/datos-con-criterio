@@ -1,0 +1,94 @@
+name: Ingesta finanzas
+# Radiografía Financiera: revisa una vez al mes si la Supersociedades actualizó sus conjuntos en datos.gov.co y,
+# solo si cambiaron (o si se lanza a mano), reconstruye el gold, lo valida y lo publica en R2 (finanzas/gold/).
+on:
+  schedule:
+    - cron: "0 12 1 * *"   # día 1 de cada mes, 12:00 UTC (07:00 Colombia)
+  workflow_dispatch:
+    inputs:
+      forzar_fallo:
+        description: "Forzar que la validación falle (prueba del flujo de alerta)"
+        type: boolean
+        default: false
+      solo_simulacion:
+        description: "Construir y validar, pero no subir nada a R2"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: ingesta-finanzas
+  cancel-in-progress: false
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      reconstruir: ${{ steps.revisar.outputs.reconstruir }}
+      motivo: ${{ steps.revisar.outputs.motivo }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: ¿Cambió la fuente desde la última publicación?
+        id: revisar
+        run: uv run python -m pipelines.finanzas.revisar
+        env:
+          EVENTO: ${{ github.event_name }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      - name: Abrir issue si la revisión falló
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create --repo "${{ github.repository }}" --title "Revisión de finanzas fallida $(date +%F)" \
+            --body "La revisión mensual de la fuente falló. Detalle: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  ingesta:
+    needs: revisar
+    if: needs.revisar.outputs.reconstruir == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+    steps:
+      - run: echo "Se reconstruye - ${{ needs.revisar.outputs.motivo }}"
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Restaurar bronze (incremental)
+        uses: actions/cache@v4
+        with:
+          path: data/finanzas/bronze
+          key: bronze-finanzas-${{ github.run_id }}
+          restore-keys: bronze-finanzas-
+      - run: uv run python -m pipelines.finanzas.referencias
+      - run: uv run python -m pipelines.finanzas.ingesta
+      - run: uv run python -m pipelines.finanzas.transformar
+      - name: Validar (si falla, no se publica)
+        run: uv run python -m pipelines.finanzas.validaciones
+        env:
+          FORZAR_FALLO: ${{ inputs.forzar_fallo && '1' || '0' }}
+      - name: Publicar a R2
+        run: uv run python -m pipelines.finanzas.publicar ${{ inputs.solo_simulacion && '--dry-run' || '' }}
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      - name: Abrir issue si algo falló
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cuerpo="La corrida ${{ github.run_id }} de finanzas falló y no se publicó nada. Detalle: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ -f data/finanzas/validacion_reporte.md ]; then cuerpo="$cuerpo"$'\n\n'"$(cat data/finanzas/validacion_reporte.md)"; fi
+          gh issue create --repo "${{ github.repository }}" --title "Ingesta de finanzas fallida $(date +%F)" --body "$cuerpo"

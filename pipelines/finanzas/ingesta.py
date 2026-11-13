@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 
 from pipelines.common.socrata import BASE
 from pipelines.finanzas import conceptos as cp
-from pipelines.finanzas.config import ANIOS, CONJUNTOS, DATA, ESTADOS, GRANDES, HILOS, PAGINA
+from pipelines.finanzas.config import ANIOS, CONJUNTOS, DATA, ESTADOS, GRANDES, HILOS, MIN_COMPLETITUD, PAGINA
 
 load_dotenv()
 
@@ -167,7 +167,13 @@ def grandes() -> int:
     return len(df)
 
 
+def corte_completo(puntos: pd.DataFrame, previos: pd.DataFrame | None) -> bool:
+    """Un corte recién abierto trae pocos informes; entra cuando alcanza `MIN_COMPLETITUD` del corte anterior."""
+    return previos is None or puntos["informes"].sum() >= MIN_COMPLETITUD * previos["informes"].sum()
+
+
 def main(anios: list[int] | None = None, forzar: bool = False, solo: tuple[str, ...] | None = None) -> None:
+    explicito = anios is not None
     anios = anios or list(ANIOS)
     meta = _leer_meta()
     nueva = {c: actualizado(CONJUNTOS[c]) for c in CONJUNTOS} | {"grandes": actualizado(GRANDES)}
@@ -177,11 +183,18 @@ def main(anios: list[int] | None = None, forzar: bool = False, solo: tuple[str, 
     puntos_dir = DATA / "bronze" / "puntos_entrada"
     puntos_dir.mkdir(parents=True, exist_ok=True)
     tareas: list[tuple[str, int, list[int]]] = []
+    previos: pd.DataFrame | None = None
     for a in anios:
         ruta = puntos_dir / f"anio={a}.parquet"
         if forzar or not ruta.exists() or "caratula" in cambio:
-            descubrir_puntos(a).to_parquet(ruta, index=False)
+            puntos = descubrir_puntos(a)
+            if not explicito and not corte_completo(puntos, previos):
+                print(f"  corte {a}: {puntos['informes'].sum()} informes, menos del {MIN_COMPLETITUD:.0%} del anterior; se omite por ahora")
+                ruta.unlink(missing_ok=True)
+                continue
+            puntos.to_parquet(ruta, index=False)
         puntos = pd.read_parquet(ruta)
+        previos = puntos
         ids = [int(i) for i in puntos["id_punto_entrada"]]
         for c in solo or ("caratula", *ESTADOS):
             if forzar or c in cambio or not (DATA / "bronze" / c / f"anio={a}.parquet").exists():
@@ -193,8 +206,8 @@ def main(anios: list[int] | None = None, forzar: bool = False, solo: tuple[str, 
     if not solo and (forzar or "grandes" in cambio or not (DATA / "bronze" / "grandes" / "grandes.parquet").exists()):
         print("  grandes:", grandes(), "filas")
 
-    # Se anota la marca solo si no se pidió un subconjunto de años: el resto sigue pendiente.
-    if set(anios) == set(ANIOS) and not solo:
+    # La marca de actualización solo se anota en una corrida completa: con años o conjuntos sueltos el resto sigue pendiente.
+    if not explicito and not solo:
         meta.update(nueva)
         meta["descargado"] = datetime.now(UTC).isoformat(timespec="seconds")
         META.write_text(json.dumps(meta, indent=2), encoding="utf-8")

@@ -94,8 +94,8 @@ def datos(tmp_path):
             filas.append(fila(600 + anio, 9, f"{anio}-01-000600", 30, CIIU, "Periodo Actual", ciiu))
         escribir(data, "caratula", anio, filas)
 
-    ref = data.parent / "ref"
-    ref.mkdir(exist_ok=True)
+    ref = data / "ref"
+    ref.mkdir(parents=True, exist_ok=True)
     pd.DataFrame({"cod_mpio": ["11001", "25126", "05001", "76001", "05615", "13001", "47001"],
                   "municipio": ["BOGOTÁ, D.C.", "CAJICÁ", "MEDELLÍN", "CALI", "RIONEGRO", "CARTAGENA DE INDIAS", "SANTA MARTA"],
                   "departamento": ["BOGOTÁ, D.C.", "CUNDINAMARCA", "ANTIOQUIA", "VALLE DEL CAUCA", "ANTIOQUIA", "BOLÍVAR", "MAGDALENA"]}).to_parquet(ref / "divipola.parquet")
@@ -214,9 +214,9 @@ def test_municipio_con_sufijo_abreviado_y_guion_como_espacio():
     from pathlib import Path
     with tempfile.TemporaryDirectory() as t:
         data = Path(t) / "finanzas"
-        (Path(t) / "ref").mkdir()
+        (data / "ref").mkdir(parents=True)
         pd.DataFrame({"cod_mpio": ["76001", "13001", "47001"], "municipio": ["CALI", "CARTAGENA DE INDIAS", "SANTA MARTA"],
-                      "departamento": ["VALLE DEL CAUCA", "BOLÍVAR", "MAGDALENA"]}).to_parquet(Path(t) / "ref" / "divipola.parquet")
+                      "departamento": ["VALLE DEL CAUCA", "BOLÍVAR", "MAGDALENA"]}).to_parquet(data / "ref" / "divipola.parquet")
         r = tr._ubicacion(df, data)
     assert list(r["cod_mpio"][:3]) == ["76001", "13001", "47001"]
     assert pd.isna(r["cod_mpio"][3])  # departamento que no corresponde: no se adivina

@@ -264,7 +264,7 @@ def _ubicacion(df: pd.DataFrame, data: Path) -> pd.DataFrame:
     coincidencia es única; si no, queda vacío (nunca se adivina).
     """
     columnas = ["cod_mpio", "municipio", "departamento"]
-    ref = data.parent / "ref" / "divipola.parquet"
+    ref = data / "ref" / "divipola.parquet"
     if not ref.exists():
         return pd.DataFrame({c: [None] * len(df) for c in columnas}, index=df.index)
     div = pd.read_parquet(ref)

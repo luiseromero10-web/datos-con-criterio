@@ -1,9 +1,19 @@
 """Configuración de la Radiografía Financiera. Fuentes y decisiones: docs/finanzas/fuentes.md y decisiones.md."""
+from datetime import date
 from pathlib import Path
 
 DATA = Path(__file__).resolve().parents[2] / "data" / "finanzas"
 
-ANIOS = tuple(range(2016, 2026))  # 2015 queda fuera: solo Grupo 1 y sin flujo de efectivo (fuentes.md, sección 3)
+PRIMER_ANIO = 2016  # 2015 queda fuera: solo Grupo 1 y sin flujo de efectivo (fuentes.md, sección 3)
+MIN_COMPLETITUD = 0.6  # un corte nuevo entra cuando ya tiene al menos el 60 % de los informes del corte anterior
+
+
+def anios(hoy: date | None = None) -> tuple[int, ...]:
+    """Cortes candidatos: desde 2016 hasta el año anterior al actual (el corte de fin de 2026 se presenta en 2027)."""
+    return tuple(range(PRIMER_ANIO, (hoy or date.today()).year))
+
+
+ANIOS = anios()
 
 # Conjuntos de la Supersociedades en datos.gov.co (CC BY-SA 4.0)
 CONJUNTOS = {
