@@ -75,9 +75,10 @@ Causa: **duplicación de filas dentro del mismo informe**, no de informes.
 
 - **Unidades.** `valor` está en **miles de pesos**. Bavaria & Cía. (860005224) 2024: «Total de activos» = 13 614 435 259 = 13,61 billones de pesos, igual a `6cat-2gcs` (13,61). Alpina: 1 431 184 168 → 1,43. Postobón: 3 380 831 634 → 3,38 (ingresos 2 846 700 531 → 2,85; igual a `6cat-2gcs`).
   La carátula también trae «valor de las utilidades decretadas en miles de pesos», consistente con eso.
-- **`periodo`.**
+- **`periodo`** (corregido en la Fase 1; ver decisiones.md F5).
   - 2016: fechas en texto («2016-dic-31» = actual, «2015-dic-31» = anterior y **«2015-ene-01» = saldo de apertura**, que no es un periodo del estado de resultados), con variantes en inglés («2016-Dec-31», «Jan»).
   - 2017: mezcla de fechas y «Periodo Actual / Periodo Anterior».
+  - Resultado y flujo de 2016 y 2017: solo el año («2016» = actual, «2015» = anterior). En el flujo de 2016 la columna trae el NIT (defecto de la fuente).
   - 2018 en adelante: «Periodo Actual» / «Periodo Anterior».
   - Regla: es periodo actual si `periodo` = «Periodo Actual» o su fecha (normalizando meses en español e inglés) coincide con `fecha_corte`.
 - **Taxonomías.** `id_taxonomia` cambia cada año (223, 238, 259, 273, 300, 321, 346, 369, 411, 447…); los puntos de entrada también. Hay que localizar el punto individual por **nombre** («Individual», G1 o G2), no por número. La tabla de ids por año está en `notebooks/finanzas/fase0/04_puntos_entrada.py`.

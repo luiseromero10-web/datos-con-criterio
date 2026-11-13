@@ -32,3 +32,31 @@ Decisiones nuevas que surgieron (también confirmadas):
 
 ## 2026-11-12 · F4 · Cierre de la Fase 0
 El autor confirmó alcance, pares, política de publicación del modelo (sin puntajes individuales) y el uso de la base de insolvencia solo como etiqueta y en agregados. La Fase 0 queda cerrada; se continúa con la Fase 1 cuando el autor lo pida.
+
+## 2026-11-12 · F5 · Fase 1: ingesta y transformación local (hecha)
+**Entregado:** `pipelines/finanzas/{config,conceptos,ingesta,transformar,calidad}.py`, `tests/finanzas/` (36 pruebas) y [`calidad_fase1.md`](calidad_fase1.md), generado por `python -m pipelines.finanzas.calidad` (sale con código 1 si algún criterio falla).
+Ejecución: `python -m pipelines.finanzas.ingesta` (10 cortes, ~12 min, ~150 MB de bronze), `python -m pipelines.finanzas.transformar` (~30 s), `python -m pipelines.finanzas.calidad`. Resultado: **268 022 estados** (sociedad × año) en `gold/estados.parquet` (35 MB), 44 326 sociedades, bronze 152 MB, silver 46 MB, gold 39 MB.
+
+**Diseño:**
+- Bronze por conjunto y año, solo informes individuales y separados de la taxonomía principal del corte, solo los rubros del mapeo y, de la carátula, **una lista blanca de 11 campos**: los datos de contacto no se piden a la API (la prueba `test_el_filtro_de_la_caratula_es_una_lista_blanca_sin_contacto` y `calidad.py` lo comprueban).
+- No se usó `pipelines.common.socrata.fetch_all`: guarda todas las filas en memoria y un año de balance son ~1 millón. `ingesta.py` pagina y libera cada página (no se modificó lo compartido). Se vuelve a descargar solo si `rowsUpdatedAt` de un conjunto cambió.
+- El criterio de elección de informe es: con balance, individual sobre separado, radicado más reciente, `codigo_instancia` más alto. Descarta 0–93 informes por año (todos por tener otro de la misma sociedad y año o por no traer balance).
+- `valor` pasa de miles a **pesos enteros** (×1 000), decisión pendiente de F2 resuelta. Rubro ausente = `NULL` en silver y gold; el tratamiento «ausente = cero» queda para la Fase 3.
+- Un rubro puede tener varios alias (taxonomía distinta por año); el signo del impuesto de 2017 se corrige al leer.
+
+**Hallazgos nuevos (corrigen o completan la Fase 0):**
+1. **Periodo en 2016–2017:** el resultado y el flujo escriben el periodo como solo el año («2016»), no «Periodo Actual». La regla exacta del periodo actual es: «Periodo Actual», «AAAA», «AAAA-dic-31», «AAAA-Dec-31» o «AAAA-12-31».
+2. **Flujo de efectivo de 2016:** la fuente puso el **NIT en la columna `periodo`** y en el 29 % de los informes trae dos valores (actual y anterior) imposibles de distinguir. Se **excluye todo el flujo de 2016**: `flujo_operacion`, `flujo_inversion`, `flujo_financiacion` y `depreciacion_amortizacion` quedan vacíos ese año.
+3. **921 informes de 2020 no tienen balance en la fuente** (la API no devuelve ninguna fila para ellos): el 97,1 % de los informes de 2020 trae balance, el 100 % en los demás años. Quedan en el gold con solo el resultado.
+4. **`6cat-2gcs` suma ingresos distinto:** su «ingresos operacionales» se parece a ingresos ordinarios **+ otros ingresos** (mediana del error 0,5–0,6 %) y no a los ordinarios solos (1,6–1,8 %). Por eso se agregó la variable `otros_ingresos`. Los casos con más de 5 % se concentran en estados separados (23 % de los separados frente a 7 % de los individuales), casi siempre con 6cat mayor: hipótesis, sin verificar, de que 6cat informa un perímetro de grupo para ingresos.
+5. **CIIU:** 100 % desde 2020; antes se hereda. Heredado cubre 76,5 % de las sociedades de 2016, 85 % de 2017, 93 % de 2018 y 96 % de 2019. **El 23,5 % de las sociedades de 2016 no tiene CIIU** (dejaron de reportar antes de 2020). Son justo las empresas más expuestas al sesgo de supervivencia; en la Fase 4 hay que decidir si entran al modelo con sector «desconocido».
+6. **Ciudad y departamento** vienen sucios (sin tilde, con «�», con sufijo de departamento, guion como espacio, abreviados). Se resuelven al código DIVIPOLA por nombre dentro del departamento, solo con coincidencia única: 96,7 % de las sociedades-año, 98,3 % en 2024. Lo no resuelto queda vacío.
+7. **La razón social conserva «?»** donde la fuente dañó una letra (no se puede restaurar). Alternativa a evaluar en la Fase 5: tomar el nombre de `6cat-2gcs` o de la base de insolvencia cuando exista.
+8. **El plan (sección 8) pide «silver y gold de estados e indicadores» en la Fase 1**, pero la Fase 3 contiene «Indicadores de 4.3». Se interpretó que los indicadores son de la Fase 3; la Fase 1 deja estados, identidad y calidad.
+
+**Resultado de los criterios de aceptación** (detalle en `calidad_fase1.md`):
+- Conciliación con `6cat-2gcs` (empresas de Supersociedades con activos ≥ 0,5 billones, 2021–2025): activos 0,2 % de error mediano y **0 casos > 5 %**; patrimonio 0,2 % y 1 caso > 5 %; ingresos ordinarios + otros 0,5–0,6 % (68–83 casos > 5 % por año, explicados arriba solo como hipótesis).
+- Las 8 variables núcleo en ≥ 95,9 % de los informes individuales de cada año (el mínimo es 2020 por los 921 sin balance).
+- Identidad activo = pasivo + patrimonio: 100 % en todos los años (±3 000 pesos).
+- Sin datos de contacto en bronze, silver ni gold.
+- Los NIT con estado individual coinciden con los de la Fase 0 (diferencias de 0 a 4 por informes repetidos).
