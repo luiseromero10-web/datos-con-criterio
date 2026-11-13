@@ -80,4 +80,10 @@ Ejecución: `python -m pipelines.finanzas.ingesta` (10 cortes, ~12 min, ~150 MB 
 - Tipos de contenido correctos (`application/vnd.apache.parquet`, `application/json`), `Cache-Control: public, max-age=300`, **lectura por rangos con HTTP 206** y `Access-Control-Allow-Origin: *`: DuckDB lee el parquet directamente desde R2 (268 022 sociedades-año, 44 326 NIT, 2016–2025; Bavaria 2024: activo 13 614 435 259 000 e ingresos 6 923 194 639 000 pesos, igual que local).
 - `finanzas/staging/` quedó vacío (la limpieza funcionó).
 - `metadatos.json`: corrida, commit, años, filas, tamaño y sha256 de cada archivo, fecha de actualización de las cinco fuentes, métricas (núcleo mínimo 95,9 %, identidad mínima 100 %, error mediano de activos máximo 0,22 %), licencia CC BY-SA 4.0 y atribución.
-**Pendiente de la Fase 2:** la corrida con `forzar_fallo=true` (debe abrir un issue y no publicar), que requiere la aprobación del autor porque crea un issue en el repositorio. Aviso de Actions sin atender: las acciones `checkout`, `setup-uv` y `cache` anuncian que Node 20 queda en desuso.
+**La corrida con `forzar_fallo=true` se hizo después, con aprobación del autor (F8).** Aviso de Actions sin atender: las acciones `checkout`, `setup-uv` y `cache` anuncian que Node 20 queda en desuso.
+
+## 2026-11-12 · F8 · Fase 2: corrida con fallo forzado (hecha, con aprobación del autor)
+**Corrida** [43366050525](https://github.com/luiseromero10-web/datos-con-criterio/actions/runs/43366050525) con `forzar_fallo=true`: `revisar` en verde; en `ingesta`, descarga (reutilizó la caché), transformación OK, **«Validar» falló, «Publicar a R2» se omitió** y «Abrir issue si algo falló» se ejecutó. Se creó el issue [#4](https://github.com/luiseromero10-web/datos-con-criterio/issues/4) con el reporte de validación («Fallo forzado (FORZAR_FALLO=1) para probar el flujo de alerta.»).
+**R2 no cambió:** `finanzas/gold/metadatos.json` sigue con `generado` 2026-11-13T03:59:41 (corrida 43360620946) y no hay nada en `finanzas/staging/`.
+El issue #4 es de prueba y se puede cerrar. El #3 («Ingesta fallida 2026-11-12») es anterior y del observatorio; no se tocó.
+**Criterios de aceptación de la Fase 2:** cumplidos (corrida manual deja gold en R2; una validación forzada a fallar abre un issue y no publica).
