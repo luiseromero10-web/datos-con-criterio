@@ -1,0 +1,5 @@
+# Scripts de exploración de la Fase 0: solo se vigilan errores de sintaxis y nombres no definidos.
+line-length = 200
+
+[lint]
+select = ["E9", "F"]
