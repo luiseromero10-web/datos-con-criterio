@@ -272,7 +272,9 @@ def test_el_gold_agregado_de_punta_a_punta_con_el_modelo_guardado(gold, tmp_path
     base = base_sintetica(n=300)
     res = alerta.entrenar(base, ventanas={"v": (2016, 2017, 2018, 2019)}, con_intervalos=False)
     alerta.guardar(res, tmp_path)
+    (tmp_path / "metrics.json").write_text('{"metricas": {"lgbm": {"prueba": {"pr_auc": 0.1}}}}', encoding="utf-8")
     out = puntuar.main(gold, tmp_path)
+    assert json.loads((gold / "gold" / "alerta_metricas.json").read_text(encoding="utf-8"))["metricas"]["lgbm"]["prueba"]["pr_auc"] == 0.1
     leido = pd.read_parquet(gold / "gold" / "alerta_agregada.parquet")
     assert len(out) == len(leido) and set(leido["dimension"]) <= set(puntuar.DIMENSIONES)
     assert "nit" not in leido.columns and (leido["n_empresas"] >= puntuar.MIN_GRUPO).all()
@@ -285,6 +287,7 @@ def test_la_validacion_de_la_fase_4_detecta_una_salida_que_se_pasa_de_publica(go
     base = base_sintetica(n=300)
     res = alerta.entrenar(base, ventanas={"v": (2016, 2017, 2018, 2019)}, con_intervalos=False)
     alerta.guardar(res, tmp_path)
+    (tmp_path / "metrics.json").write_text('{"metricas": {}}', encoding="utf-8")
     puntuar.main(gold, tmp_path)
     anios = [2021, 2022, 2023, 2024, 2025]
     assert val.validar_fase4(gold, anios, tmp_path) == []
@@ -301,5 +304,13 @@ def test_la_validacion_de_la_fase_4_detecta_una_salida_que_se_pasa_de_publica(go
     assert any("0–1" in p for p in con(original.assign(pct_perfil_alto=1.5)))
     assert any("no coincide" in p for p in con(original.assign(modelo="altman" if original["modelo"].iloc[0] != "altman" else "logit")))
     assert any("todos los años" in p for p in con(original[original["anio"] != 2023]))
+    con(original)  # restaura la salida buena
+    met = gold / "gold" / "alerta_metricas.json"
+    met.write_text('{"x": NaN}', encoding="utf-8")  # NaN no es JSON: el navegador no lo lee
+    assert any("JSON válido" in p for p in val.validar_fase4(gold, anios, tmp_path))
+    met.write_text('{"por_sociedad": [{"nit": 1}]}', encoding="utf-8")
+    assert any("identificadores" in p for p in val.validar_fase4(gold, anios, tmp_path))
+    met.unlink()
+    assert any("falta alerta_metricas" in p for p in val.validar_fase4(gold, anios, tmp_path))
     ruta.unlink()
     assert "falta alerta_agregada" in val.validar_fase4(gold, anios, tmp_path)[0]

@@ -1,0 +1,6 @@
+@import "tailwindcss";
+/* Identidad común: tokens, tipografía y utilidades. Fuente única en packages/marca. */
+@import "@dcc/marca/estilos.css";
+/* Tailwind debe escanear también las clases usadas dentro del paquete común. */
+@source "../../../packages/marca/src";
+@source "../../../packages/comunidad/src";

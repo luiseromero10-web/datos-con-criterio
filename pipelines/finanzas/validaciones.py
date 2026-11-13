@@ -267,6 +267,15 @@ def validar_fase3(data: Path, anios: list[int]) -> list[str]:
     return problemas
 
 
+def _claves(o) -> set[str]:
+    """Todas las claves de un JSON anidado."""
+    if isinstance(o, dict):
+        return set(o) | set().union(*(_claves(v) for v in o.values())) if o else set()
+    if isinstance(o, list):
+        return set().union(*(_claves(v) for v in o)) if o else set()
+    return set()
+
+
 def validar_fase4(data: Path, anios: list[int], artefactos: Path | None = None) -> list[str]:
     """La salida del modelo de alerta es solo agregada: sin NIT, sin puntajes por sociedad y sin grupos chicos."""
     artefactos = artefactos or Path(__file__).resolve().parents[2] / "models" / "finanzas" / "artifacts"
@@ -287,6 +296,17 @@ def validar_fase4(data: Path, anios: list[int], artefactos: Path | None = None) 
     total = a[a["dimension"] == "total"]
     if set(total["anio"]) != set(anios):
         problemas.append(f"Fase 4: el total nacional debe tener todos los años {anios}; tiene {sorted(set(total['anio']))}.")
+    met_ruta = data / "gold" / "alerta_metricas.json"
+    if not met_ruta.exists():
+        problemas.append("Fase 4: falta alerta_metricas.json (métricas del modelo para la página de metodología).")
+    else:
+        try:
+            met = json.loads(met_ruta.read_text(encoding="utf-8"), parse_constant=lambda c: (_ for _ in ()).throw(ValueError(c)))
+        except ValueError as e:
+            problemas.append(f"Fase 4: alerta_metricas.json no es JSON válido para el navegador ({e}).")
+        else:
+            if "nit" in _claves(met):
+                problemas.append("Fase 4: alerta_metricas.json no debe contener identificadores de sociedades.")
     sel_ruta = artefactos / "seleccion.json"
     if not sel_ruta.exists():
         problemas.append("Fase 4: falta models/finanzas/artifacts/seleccion.json (el modelo versionado).")

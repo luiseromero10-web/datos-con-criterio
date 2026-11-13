@@ -10,6 +10,8 @@
   "scripts": {
     "dev:portal": "npm run dev -w apps/portal",
     "dev:seguridad": "npm run dev -w apps/seguridad",
+    "dev:finanzas": "npm run dev -w apps/finanzas",
+    "datos:finanzas": "npm run datos -w apps/finanzas",
     "lint": "npm run lint --workspaces --if-present",
     "tipos": "npm run tipos --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",

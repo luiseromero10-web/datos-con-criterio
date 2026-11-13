@@ -28,7 +28,7 @@ load_dotenv()
 PREFIJO = "finanzas"
 from pipelines.finanzas.analisis import ARCHIVOS_FASE3
 
-ARCHIVOS = ("estados.parquet", "empresas_anio.parquet", "empresas.parquet", *ARCHIVOS_FASE3, "alerta_agregada.parquet")
+ARCHIVOS = ("estados.parquet", "empresas_anio.parquet", "empresas.parquet", *ARCHIVOS_FASE3, "alerta_agregada.parquet", "alerta_metricas.json")
 TIPOS = {".parquet": "application/vnd.apache.parquet", ".json": "application/json"}
 CACHE = "public, max-age=300"
 ATRIBUCION = ("Superintendencia de Sociedades (estados financieros NIIF reportados por las sociedades), datos.gov.co, "

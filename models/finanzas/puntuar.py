@@ -98,6 +98,12 @@ def historia(base: pd.DataFrame, estado: pd.DataFrame) -> pd.DataFrame:
     return agregar(d, con_etiqueta=True)
 
 
+def copiar_metricas(carpeta: Path, gold: Path) -> None:
+    """Las métricas de validación del modelo viajan con los datos: la página de metodología las lee de ahí (sin datos de sociedades)."""
+    m = json.loads((carpeta / "metrics.json").read_text(encoding="utf-8"))
+    (gold / "alerta_metricas.json").write_text(json.dumps(m, ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
+
+
 def main(data: Path = DATA, carpeta: Path = ARTEFACTOS) -> pd.DataFrame:
     modelo, sel = cargar_modelo(carpeta)
     umbral = sel["umbral_perfil_alto"]
@@ -119,6 +125,7 @@ def main(data: Path = DATA, carpeta: Path = ARTEFACTOS) -> pd.DataFrame:
     out = out[cols].sort_values(["dimension", "codigo", "anio"]).reset_index(drop=True)
     (data / "gold").mkdir(parents=True, exist_ok=True)
     out.to_parquet(data / "gold" / "alerta_agregada.parquet", index=False, compression="zstd")
+    copiar_metricas(carpeta, data / "gold")
     return out
 
 

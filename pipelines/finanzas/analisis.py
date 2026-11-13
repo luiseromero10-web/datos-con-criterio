@@ -44,7 +44,7 @@ def catalogo_json(anios: list[int]) -> dict:
                               "ciiu2": "Misma división CIIU (2 dígitos)", "ninguno": "Sin pares suficientes"}},
         "pesos_constantes": {"anio_base": max(anios), "flujos": "IPC promedio anual", "saldos": "IPC de diciembre",
                              "fuente": "DANE, IPC total nacional, serie de empalme (base dic. 2018 = 100)",
-                             "ipc": ipc[["anio", "ipc_dic", "ipc_prom", "variacion_diciembre"]].round(6).to_dict("records")},
+                             "ipc": ipc[["anio", "ipc_dic", "ipc_prom", "variacion_diciembre"]].round(6).astype(object).where(ipc[["anio", "ipc_dic", "ipc_prom", "variacion_diciembre"]].notna(), None).to_dict("records")},
     }
 
 
@@ -70,7 +70,7 @@ def main(data: Path = DATA) -> None:
     escribir(sector.sort_values(["nivel", "codigo", "anio", "indicador"]), gold / "sector_anio.parquet")
     escribir(resumen.sort_values(["nivel", "codigo", "anio"]), gold / "sector_resumen.parquet")
     escribir(catalogos.ciiu(), gold / "ciiu.parquet")
-    (gold / "catalogos.json").write_text(json.dumps(catalogo_json(sorted(int(a) for a in e["anio"].unique())), ensure_ascii=False, indent=1), encoding="utf-8")
+    (gold / "catalogos.json").write_text(json.dumps(catalogo_json(sorted(int(a) for a in e["anio"].unique())), ensure_ascii=False, indent=1, allow_nan=False), encoding="utf-8")
     escribir(alt.sort_values(ordenar), silver / "altman.parquet")
     print(f"indicadores {len(ind):,} filas · pares {len(pares_df):,} · sector {len(sector):,} filas ({resumen['nivel'].value_counts().to_dict()})")
 

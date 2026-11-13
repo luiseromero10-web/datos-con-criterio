@@ -10,6 +10,8 @@ gold
   empresas_anio.parquet     identidad por sociedad y año (CIIU heredado donde falta)
   empresas.parquet          una fila por sociedad (último año reportado)
 
+Los parquet de gold van ordenados por NIT y año, en grupos de 20 000 filas: el sitio lee una ficha con pocas peticiones de rango.
+
 Reglas (docs/finanzas/fuentes.md): se deduplica por (informe, rubro, periodo) antes de todo; por sociedad y año se elige
 el informe que trae balance, individual sobre separado, y el de radicado más reciente; `valor` está en miles de pesos.
 """
@@ -22,6 +24,7 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
+from pipelines.finanzas import catalogos
 from pipelines.finanzas import conceptos as cp
 from pipelines.finanzas.config import DATA, ESTADOS, UNIDAD_FUENTE
 
@@ -222,10 +225,13 @@ def _caratula(con: duckdb.DuckDBPyConnection, data: Path) -> None:
     ciiu = df["ciiu_texto"].map(parsear_ciiu)
     df["ciiu_codigo"] = [c[0] for c in ciiu]
     df["ciiu_descripcion"] = [c[1] for c in ciiu]
+    # La descripción de la carátula llega con la tilde dañada («Producci?n»): se usa el nombre oficial de la clase CIIU Rev. 4 A.C.
+    oficial = catalogos.ciiu().query("nivel == 'clase'").set_index("codigo")["nombre"]
+    df["ciiu_descripcion"] = df["ciiu_codigo"].map(oficial).fillna(df["ciiu_descripcion"])
     df["estado_actual"] = df["estado_actual"].map(estado_legible)
     cod = df["opinion_revisor"].str.extract(r"^\s*(\d+)")[0]
     df["opinion_revisor"] = cod.map(OPINIONES)
-    df["tipo_societario"] = df["tipo_societario"].str.replace(r"^\s*\d+\.\s*", "", regex=True).str.replace("�", "?")
+    df["tipo_societario"] = df["tipo_societario"].str.replace(r"^\s*\d+\.\s*", "", regex=True).str.replace("�", "?").str.replace("AN?NIMA", "ANÓNIMA")
     df["regimen_especial"] = df["regimen_especial"].str.replace(r"^\s*\d+\.\s*", "", regex=True).str.replace("�", "?")
     for c in ("reexpresion", "obligada_revisor"):
         df[c] = df[c].str.lower().map({"true": True, "false": False})
@@ -312,8 +318,8 @@ def construir_gold(data: Path = DATA) -> None:
             SELECT e.*, i.numero_radicado
             FROM e JOIN read_parquet('{(silver / 'informes.parquet').as_posix()}') i
               ON i.codigo_instancia = e.codigo_instancia
-            ORDER BY anio, nit
-        ) TO '{(gold / 'estados.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD)""")
+            ORDER BY nit, anio
+        ) TO '{(gold / 'estados.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 20000)""")
 
     # CIIU: la carátula solo lo trae desde 2020; antes se hereda del año más cercano que lo tenga (empate: el siguiente)
     con.execute(f"CREATE TABLE car AS SELECT * FROM read_parquet('{(silver / 'caratula.parquet').as_posix()}')")
@@ -334,8 +340,8 @@ def construir_gold(data: Path = DATA) -> None:
                    c.tipo_societario, c.regimen_especial, c.fecha_constitucion, c.estado_actual, c.opinion_revisor,
                    c.obligada_revisor, c.reexpresion, c.cod_mpio, c.municipio, c.departamento
             FROM car c LEFT JOIN heredado h ON h.nit = c.nit AND h.anio = c.anio
-            ORDER BY c.anio, c.nit
-        ) TO '{(gold / 'empresas_anio.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD)""")
+            ORDER BY c.nit, c.anio
+        ) TO '{(gold / 'empresas_anio.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 20000)""")
     con.execute(f"""
         COPY (
             SELECT * EXCLUDE (n) FROM (
@@ -344,7 +350,7 @@ def construir_gold(data: Path = DATA) -> None:
                        row_number() OVER (PARTITION BY nit ORDER BY anio DESC) AS n
                 FROM read_parquet('{(gold / 'empresas_anio.parquet').as_posix()}')) WHERE n = 1
             ORDER BY nit
-        ) TO '{(gold / 'empresas.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD)""")
+        ) TO '{(gold / 'empresas.parquet').as_posix()}' (FORMAT PARQUET, COMPRESSION ZSTD, ROW_GROUP_SIZE 20000)""")
     con.close()
 
 
