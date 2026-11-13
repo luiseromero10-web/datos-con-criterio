@@ -4,7 +4,7 @@
 Detalle en [`fuentes.md`](fuentes.md) y [`matriz_rubros.md`](matriz_rubros.md). Scripts en `notebooks/finanzas/fase0/`.
 - Se crearon las subcarpetas de la sección 7 del plan (`apps/finanzas`, `pipelines/finanzas`, `models/finanzas`, `tests/finanzas`, `notebooks/finanzas`, `docs/finanzas`, `data/finanzas`). El observatorio, `packages/*` y `pipelines/common` no se tocaron.
 - Servicios: conectados GitHub (CLI `gh` con sesión del autor), Vercel (conector; la escritura puede dar 403, se usará la CLI con confirmación), Supabase y Claude Docs. **Cloudflare necesita autenticación** (`needs_auth`); para R2 se seguirá usando Wrangler/CLI con la sesión del autor. No se hizo nada hacia afuera.
-- Se descargó **un** archivo de la Supersociedades (base de insolvencia, corte noviembre 2026, 793 866 bytes) a `data/finanzas/insolvencia_raw/` (ignorado por git).
+- Se descargaron **tres** archivos de la Supersociedades (base de insolvencia: noviembre 2026, 793 866 bytes; y, con autorización del autor, diciembre 2019 y diciembre 2022) a `data/finanzas/insolvencia_raw/` (ignorado por git).
 
 ## 2026-11-12 · F2 · Hallazgos que cambian el plan
 1. **El pico de 2022 es duplicación de filas**, no de informes (32 753 informes reales). Toda la ingesta deduplica por `(codigo_instancia, concepto, periodo)` y registra los descartes. El plan 3.2 cita «93 951 informes»; el dato correcto es 32 753.
