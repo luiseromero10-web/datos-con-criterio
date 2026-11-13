@@ -13,7 +13,7 @@ La matriz completa de rubros está en [`matriz_rubros.md`](matriz_rubros.md).
 | Unidades de `valor` | **Miles de pesos** (comprobado con Bavaria, Alpina y Postobón). |
 | Rubros | Los 8 rubros núcleo tienen ≥ 95 % de cobertura en todos los años, salvo ingresos de Grupo 1 en 2015 (94 %). Los nombres cambian entre años (2017 tiene otra taxonomía, con signo de impuesto invertido). |
 | CIIU | **La carátula solo trae CIIU desde el corte 2020.** Para 2016–2019 hay que heredarlo de un año posterior (ver 4). |
-| Base de insolvencia | Existe, trae NIT y fecha de admisión; **pero parece una foto de procesos vigentes** (sesgo de supervivencia, ver 6) y no tiene licencia abierta. |
+| Base de insolvencia | Existe, trae NIT y fecha de admisión; **es una foto de procesos vigentes** (comprobado: el 41 % de los procesos de 2019 ya no figura; ver 6) y no tiene licencia abierta. |
 | Eventos unibles por NIT | Entre **128 y 436 eventos por año de corte** (2016–2023); solo **23–37 %** de las empresas admitidas había presentado estados el año anterior. |
 | `6cat-2gcs` para conciliar | Sirve, pero con precisión limitada: cifras en **billones con 2 decimales**. |
 
@@ -122,12 +122,15 @@ Consecuencias:
 Fuente: <https://www.supersociedades.gov.co/web/procedimientos-de-insolvencia/informes> («Atlas de insolvencia», archivos «Base Soporte Insolvencia»).
 
 - **Formato:** un Excel por corte (`.xlsx`, 0,3–1 MB). Mensuales desde 2023 (el más reciente: noviembre 2026, publicado el 06-nov-2026, con fecha de generación 2026-11-06); trimestrales o sueltos antes (2019–2022). La página no separa las bases por tipo de proceso.
-- **Descargué un archivo** (corte noviembre 2026, 793 866 bytes) a `data/finanzas/insolvencia_raw/` (ignorado por git). No descargué ningún otro.
+- **Descargué tres archivos** a `data/finanzas/insolvencia_raw/` (ignorado por git): noviembre 2026 (793 866 bytes), y, con tu autorización, diciembre 2019 (341 815) y diciembre 2022 (452 811).
 - **Columnas (19):** `Nro`, `NIT`, `NOMBRE`, `REGIONAL`, `DEPARTAMENTO`, `CIUDAD`, `CIIU`, `MACROSECTOR`, `PROCESO`, `CATEGORIA`, `ACTIVO`, `PASIVO`, `EMPLEOS`, `AÑO_DE_APERTURA_CELEBRACION`, `FECHA AUTO ADMISION`, `FECHA_REORGANIZACION_EN_EJECUCION`, `DOCUMENTO FIRMA ACUERDO`, `NÚMERO AUTO DE ADMISION`, `FECHA DE GENERACIÓN`.
 - **Sí trae NIT** (numérico, sin dígito de verificación, mismo formato que los estados) **y fecha de admisión** (`FECHA AUTO ADMISION`, sin nulos, de 2008-06-06 a 2026-10-30).
 - **Contenido:** 5 767 filas, 5 765 NIT únicos. `PROCESO`: reorganización en ejecución 3 225, liquidación judicial en trámite 1 454, reorganización en trámite 1 082, liquidación judicial en ejecución 5, y 1 fila con error («COMERCIO»). Hay una fila con la `CATEGORIA` desplazada. `ACTIVO` y `PASIVO` vienen en miles de pesos (misma lógica que los estados) y pueden estar vacíos.
 - **Problemas:**
-  1. **Parece una foto de procesos vigentes, no un historial.** Las admisiones por año crecen de 4 (2008) a 957 (2025) y solo hay 5 liquidaciones «en ejecución»; los procesos terminados o cerrados no aparecen. Esto sesga las etiquetas de los años antiguos hacia abajo. **Es una inferencia, no una medición**: la comprobación es descargar un corte antiguo (p. ej. diciembre de 2019 y diciembre de 2022) y ver qué procesos de ese archivo ya no están en el actual. Si es cierto, la unión de varios cortes reconstruye el historial.
+  1. **Es una foto de procesos vigentes, no un historial (comprobado).** Cada archivo trae una sola hoja, «Procesos en Curso». Al compararlos por NIT con el de noviembre de 2026, **ya no están el 41 % de los 2 700 procesos del corte de diciembre de 2019 y el 27 % de los 4 166 de diciembre de 2022** (1 117 y 1 114 procesos). Lo que desaparece son procesos terminados o cerrados. La base actual subestima, por tanto, los eventos de los años antiguos (por eso las admisiones crecen de 4 en 2008 a 957 en 2025).
+     - **Se pueden recuperar uniendo cortes:** de los 1 117 procesos que ya no están, 263 son de empresas que habían presentado estados el año previo a su apertura (50 de 2017, 102 de 2018, 108 de 2019). El corte de 2022 aporta otros 304 (aperturas 2017–2022, 65 de 2020, 96 de 2021 y 84 de 2022). Son cifras sin deduplicar entre cortes: indican el orden de magnitud (cientos de eventos más), no un total.
+     - **Los cortes antiguos no traen fecha de admisión**: el de 2019 tiene un número de auto (`AUTO_ADMISIÓN`) y el de 2022 solo el año de apertura. Además, en el archivo actual `AÑO_DE_APERTURA_CELEBRACION` no coincide con el año de admisión (p. ej. admisión 2023-06, año 2024: es el año del acuerdo). Para los procesos recuperados solo habrá precisión de año, con error de 1–2 años en reorganizaciones; la etiqueta de 24 meses para ellos será aproximada. Se decide en la Fase 4.
+     - Los cortes antiguos incluyen tipos de proceso que el actual no trae («liquidación por adjudicación», «liquidación simplificada», «validación judicial») y **personas naturales comerciantes** (22 y 36 filas «P.N.C.»; su NIT es la cédula). **Las personas naturales no se usan ni se publican.**
   2. Incluye fideicomisos y patrimonios autónomos (NIT que no presentan estados).
   3. Dos NIT repetidos (uno es un duplicado exacto; otro tiene dos admisiones distintas).
 - **Licencia / términos: sin licencia abierta.** La página no declara Creative Commons; solo dice que la información proviene de fuentes públicas, que el uso es responsabilidad del usuario y que enlaza a «Términos y condiciones de uso» (**no verificado**: no leí ese documento). Es distinta de la CC BY-SA de los estados. Recomendación: usarla **solo para construir la etiqueta del modelo**, citarla y **no republicar la lista de empresas en proceso**; publicar únicamente agregados.
@@ -180,13 +183,13 @@ Con la foto de noviembre de 2026. «Etiqueta» = admitida a reorganización o li
 3. **Descargar solo rubros necesarios**, solo el periodo actual (el anterior solo para validar reexpresiones) y solo los puntos de entrada individual/separado. Estimación: ≈ 0,9 millones de filas/año en el balance, ≈ 0,4 en resultados y ≈ 0,5 en flujo, ya deduplicadas: del orden de 15–20 millones de filas en total; bronze en Parquet < 300 MB. Cada consulta con filtro por año y punto de entrada.
 4. **No descargar «Otro resultado integral».**
 5. **CIIU:** tomar el del corte 2020–2025 más cercano al año (preferir el siguiente, y el anterior si no hay) para 2016–2019; marcar el origen. Para 2016–2019 la fiabilidad depende de que la actividad principal no haya cambiado.
-6. **Modelo de alerta:** empezar por evaluar si las etiquetas son utilizables (comprobar la hipótesis de la foto de procesos vigentes con 2 cortes antiguos). Si se confirma el sesgo, reconstruir el historial uniendo los cortes disponibles; si no se puede, decir que la etiqueta subestima los años antiguos y limitar la validación a cortes recientes (p. ej. entrenar 2018–2021, validar 2022, probar 2023).
+6. **Modelo de alerta:** la base actual subestima los años antiguos (comprobado). En la Fase 4 hay que reconstruir el historial uniendo los cortes (los trimestrales de 2019–2022 y los mensuales desde 2023) con clave NIT y quedándose con la primera aparición; los procesos recuperados solo tienen año de apertura. Aun así, es prudente validar con cortes recientes (p. ej. entrenar 2018–2021, validar 2022, probar 2023). Descargar más cortes es una acción que se pedirá en su momento.
 7. **Publicar solo agregados** del modelo y de la base de insolvencia.
 
 ## 11. Lo que no pude verificar
 
 - Los términos de uso completos de la Supersociedades para la base de insolvencia.
-- Si la base es una foto de procesos vigentes (hay indicios fuertes, falta la comprobación con cortes antiguos).
+- Cuántos eventos totales aporta la unión de todos los cortes (solo medí dos cortes, sin deduplicar entre ellos).
 - Qué definición usa `6cat-2gcs` para «ingresos operacionales» ni de qué estado (separado, individual) toma las cifras.
 - Valores de IPC y CIIU-nombres del DANE.
 - Si la duplicación ×2 y ×3 de 2022 también afecta al estado de flujo de efectivo y a «Otro resultado integral» (no lo medí; la regla de deduplicar por `(codigo_instancia, concepto, periodo)` lo cubre igual).

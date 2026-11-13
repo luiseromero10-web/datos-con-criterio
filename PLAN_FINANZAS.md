@@ -254,4 +254,4 @@ Trabajar fase por fase. Al terminar cada una: verificar sus criterios ejecutando
 
 ## 11. Estado
 
-- [~] Fase 0 (entregada 2026-11-12; falta la confirmación del autor, ver docs/finanzas/fuentes.md y decisiones.md) · [ ] Fase 1 · [ ] Fase 2 · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
+- [x] Fase 0 (2026-11-12, confirmada por el autor; ver docs/finanzas/fuentes.md y decisiones.md) · [ ] Fase 1 · [ ] Fase 2 · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
