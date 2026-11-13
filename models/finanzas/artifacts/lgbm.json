@@ -1,0 +1,74 @@
+{
+ "tipo": "lgbm",
+ "categorias": {
+  "seccion": [
+   "A",
+   "B",
+   "C",
+   "D",
+   "E",
+   "F",
+   "G",
+   "H",
+   "I",
+   "J",
+   "K",
+   "L",
+   "M",
+   "N",
+   "O",
+   "P",
+   "Q",
+   "R",
+   "S",
+   "T",
+   "U"
+  ],
+  "departamento": [
+   "AMAZONAS",
+   "ANTIOQUIA",
+   "ARAUCA",
+   "ATLÁNTICO",
+   "BOGOTÁ, D.C.",
+   "BOLÍVAR",
+   "BOYACÁ",
+   "CALDAS",
+   "CAQUETÁ",
+   "CASANARE",
+   "CAUCA",
+   "CESAR",
+   "CHOCÓ",
+   "CUNDINAMARCA",
+   "CÓRDOBA",
+   "GUAINÍA",
+   "GUAVIARE",
+   "HUILA",
+   "LA GUAJIRA",
+   "MAGDALENA",
+   "META",
+   "NARIÑO",
+   "NORTE DE SANTANDER",
+   "PUTUMAYO",
+   "QUINDÍO",
+   "RISARALDA",
+   "SANTANDER",
+   "SUCRE",
+   "TOLIMA",
+   "VALLE DEL CAUCA",
+   "VICHADA"
+  ],
+  "grupo": [
+   "G1",
+   "G2"
+  ],
+  "tipo_estado": [
+   "individual",
+   "separado"
+  ]
+ },
+ "platt": {
+  "a": 0.9002743885606918,
+  "b": -0.8592030079853192
+ },
+ "iteraciones": 399
+}

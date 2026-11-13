@@ -74,6 +74,8 @@ jobs:
       - run: uv run python -m pipelines.finanzas.ingesta
       - run: uv run python -m pipelines.finanzas.transformar
       - run: uv run python -m pipelines.finanzas.analisis
+      - name: Alerta temprana (solo cifras agregadas, con el modelo versionado)
+        run: uv run python -W ignore -m models.finanzas.puntuar
       - name: Validar (si falla, no se publica)
         run: uv run python -m pipelines.finanzas.validaciones
         env:

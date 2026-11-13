@@ -1,0 +1,138 @@
+{
+  "fuente": "https://www.supersociedades.gov.co/web/procedimientos-de-insolvencia/informes",
+  "nota": "Cortes de la base de procesos de insolvencia (Excel). Solo para construir la etiqueta del modelo de alerta; no se republican los NIT. El archivo listado en la sección 2021 como «trimestre 1» es idéntico al de marzo de 2022 (se comprobó fila por fila) y se descartó.",
+  "base": "https://www.supersociedades.gov.co/documents/58444/",
+  "cortes": [
+    {
+      "archivo": "base_2019_dic.xlsx",
+      "corte": "2019-12",
+      "ruta": "6516407/BASE_SOPORTE_INSOLVENCIA_DIC_2019.xlsx/4b4c0c48-4f23-3cc6-35df-df2b329679fb?version=1.0&t=1694034011022"
+    },
+    {
+      "archivo": "base_2020_mar.xlsx",
+      "corte": "2020-03",
+      "ruta": "6516168/BASE_SOPORTE_INSOLVENCIA_MAR_2020.xlsx/2353b53d-0b4a-4317-baba-98c57eb3a542?version=1.0&t=1694033361992"
+    },
+    {
+      "archivo": "base_2020_jun.xlsx",
+      "corte": "2020-06",
+      "ruta": "6516168/BASE_SOPORTE_INSOLVENCIA_JUN_2020.xlsx/d9b8d5ec-7d23-7579-7b6a-13023958b62f?version=1.0&t=1694033472440"
+    },
+    {
+      "archivo": "base_2020_sep.xlsx",
+      "corte": "2020-09",
+      "ruta": "6516168/BASE_SOPORTE_INSOLVENCIA_SEP_2020.xlsx/ffeb2f14-5607-73c6-8591-ef2ee9f1fc94?version=1.0&t=1694033963280"
+    },
+    {
+      "archivo": "base_2021_jun.xlsx",
+      "corte": "2021-06",
+      "ruta": "6516010/Base-datos-insolvencia-junio-2021.xlsx/fc372230-b500-8eb1-6ac2-5fcbaa18418f?version=1.0&t=1694028433739"
+    },
+    {
+      "archivo": "base_2021_sep.xlsx",
+      "corte": "2021-09",
+      "ruta": "6516010/Base-datos-insolvencia-septiembre-2021.xlsx/10ff3123-dcef-abfa-eea5-5c1e5dc7aa80?version=1.0&t=1694028397666"
+    },
+    {
+      "archivo": "base_2021_dic.xlsx",
+      "corte": "2021-12",
+      "ruta": "6516010/Base-datos-insolvencia-diciembre-2021.xlsx/ffbd0733-6430-c60e-d454-6a47367b6ecd?version=1.0&t=1694028376290"
+    },
+    {
+      "archivo": "base_2022_mar.xlsx",
+      "corte": "2022-03",
+      "ruta": "6515849/Base-datos-insolvencia-2022-trimestre-1.xlsx/e7ff4568-9416-c4b8-3e7e-7221988b7163?version=1.1&t=1724249223702"
+    },
+    {
+      "archivo": "base_2022_jun.xlsx",
+      "corte": "2022-06",
+      "ruta": "6515849/BASE-SOPORTE-INSOLVENCIA-2022-CORTE-JUNIO.xlsx/40803c67-7f2b-dca8-323c-8fff6de530e4?version=1.2&t=1694027135943"
+    },
+    {
+      "archivo": "base_2022_sep.xlsx",
+      "corte": "2022-09",
+      "ruta": "6515849/BASE-SOPORTE-INSOLVENCIA-2022-CORTE-SEPTIEMBRE.xlsx/4c6f1c12-9414-774c-64e2-03e09ea51a51?version=1.1&t=1694027021629"
+    },
+    {
+      "archivo": "base_2022_dic.xlsx",
+      "corte": "2022-12",
+      "ruta": "6515849/BASE-SOPORTE-INSOLVENCIA-2022-CORTE-DICIEMBRE.xlsx/193a9c81-3986-ed94-af98-cdc8ac6c68a9?version=1.0&t=1694026647657"
+    },
+    {
+      "archivo": "base_2023_mar.xlsx",
+      "corte": "2023-03",
+      "ruta": "6515839/BASE-SOPORTE-INSOLVENCIA-2023-CORTE-MARZO.xlsx/17572852-3c24-82fb-4f16-75278b09e9ba?version=1.1&t=1694026326921"
+    },
+    {
+      "archivo": "base_2023_jun.xlsx",
+      "corte": "2023-06",
+      "ruta": "6515839/BASE-SOPORTE-INSOLVENCIA-2023-CORTE-JUNIO.xlsx/05219303-041a-07c0-0cc2-69546c210859?version=1.2&t=1701787467931"
+    },
+    {
+      "archivo": "base_2023_sep.xlsx",
+      "corte": "2023-09",
+      "ruta": "6515839/BASE-SOPORTE-INSOLVENCIA-2023-CORTE-SEPTIEMBRE.xlsx/d9521df0-4645-46f0-502d-6d2efaf17b9e?version=1.1&t=1724249113040"
+    },
+    {
+      "archivo": "base_2023_dic.xlsx",
+      "corte": "2023-12",
+      "ruta": "6515839/BASE-SOPORTE-INSOLVENCIA-2023-CORTE-DICIEMBRE.xlsx/4e32b9f3-5c45-b1a8-8606-a431fb3f21a3?version=1.1&t=1724249141759"
+    },
+    {
+      "archivo": "base_2024_jul.xlsx",
+      "corte": "2024-07",
+      "ruta": "7803983/Base-Soporte-Insolvencia-2024-CORTE-JULIO.xlsx/2927259f-45e3-24ea-9f53-a76e48b3ec26?version=3.0&t=1725573681147"
+    },
+    {
+      "archivo": "base_2024_oct.xlsx",
+      "corte": "2024-10",
+      "ruta": "7803983/Base-Soporte-Insolvencia-2024-CORTE-OCTUBRE.xlsx/c4f5e47a-e4fb-d955-5c5b-38c9a35957f6?version=1.1&t=1733147170667"
+    },
+    {
+      "archivo": "base_2024_dic.xlsx",
+      "corte": "2024-12",
+      "ruta": "7803983/Base-Soporte-Insolvencia-2024-CORTE-DICIEMBRE.xlsx/a5476d0a-46fe-c53f-ea36-417c206c1838?version=1.1&t=1735911388000"
+    },
+    {
+      "archivo": "base_2025_mar.xlsx",
+      "corte": "2025-03",
+      "ruta": "8332056/Base-Soporte-Insolvencia-2025-CORTE-MARZO.xlsx/0b77ee69-1c69-8201-71bb-c0aec1b8eb0a?version=1.0&t=1743536062600"
+    },
+    {
+      "archivo": "base_2025_jun.xlsx",
+      "corte": "2025-06",
+      "ruta": "8332056/Base-Soporte-Insolvencia-2025-CORTE-JUNIO.xlsx/1ab548bd-f552-88cc-dab2-f625e141122b?version=1.0&t=1751464239658"
+    },
+    {
+      "archivo": "base_2025_sep.xlsx",
+      "corte": "2025-09",
+      "ruta": "8332056/Base-Soporte-Insolvencia-2025-CORTE-SEPTIEMBRE.xlsx/4be4d81f-d8a7-ca4d-cd6e-7999daa1b08a?version=2.0&t=1760967473131"
+    },
+    {
+      "archivo": "base_2025_dic.xlsx",
+      "corte": "2025-12",
+      "ruta": "8332056/Base-Soporte-Insolvencia-2025-CORTE-DICIEMBRE.xlsx/b3b136e2-234a-d640-c79e-5ab0af1fd4c9?version=1.0&t=1767619414849"
+    },
+    {
+      "archivo": "base_2026_mar.xlsx",
+      "corte": "2026-03",
+      "ruta": "9506465/Base-Soporte-Insolvencia-2026-CORTE-MARZO.xlsx/99a2ecca-c8f2-9fbd-879a-5b644f137c26?version=1.0&t=1775586346450"
+    },
+    {
+      "archivo": "base_2026_may.xlsx",
+      "corte": "2026-05",
+      "ruta": "9506465/Base-Soporte-Insolvencia-2026-CORTE-MAYO.xlsx/9ad229e9-f9ce-7f12-8283-d6a057bf2992?version=1.1&t=1781649196513",
+      "nota": "no hay corte de junio de 2026; se usa mayo"
+    },
+    {
+      "archivo": "base_2026_sep.xlsx",
+      "corte": "2026-09",
+      "ruta": "9506465/Base-Soporte-Insolvencia-2026-CORTE-SEPTIEMBRE.xlsx/66c88afd-f437-004c-9eac-db0d1d2a2e1d?version=1.0&t=1791380385149"
+    },
+    {
+      "archivo": "base_2026_nov.xlsx",
+      "corte": "2026-11",
+      "ruta": "9506465/Base-Soporte-Insolvencia-2026-CORTE-NOVIEMBRE.xlsx/5d402ff7-9bb8-a3a5-ca4e-e160c3847567?version=1.1&t=1793997727640"
+    }
+  ]
+}

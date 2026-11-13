@@ -1,0 +1,47 @@
+{
+ "publicado": "lgbm",
+ "mejor_linea_base_por_validacion": "logit",
+ "lgbm_gana_en_prueba_2022": {
+  "altman": true,
+  "logit": true
+ },
+ "lgbm_no_pierde_en_2023": {
+  "altman": true,
+  "logit": true
+ },
+ "pr_auc_validacion": {
+  "altman": 0.022130428108681075,
+  "logit": 0.08983932694781457,
+  "lgbm": 0.07851779249857994
+ },
+ "regla": "LightGBM se adopta si supera a Altman y a la logística en la prueba de 2022 (PR-AUC y recall@5 %) y no pierde contra ninguna en 2023; si no, se publica la mejor línea base por PR-AUC de validación.",
+ "ventana_entrenamiento": {
+  "elegida": "2016-2019",
+  "anios": [
+   2016,
+   2017,
+   2018,
+   2019
+  ],
+  "pr_auc_validacion_por_ventana": {
+   "2018-2019": {
+    "altman": 0.022130428108681075,
+    "logit": 0.07821611279050426,
+    "lgbm": 0.07334446494160518
+   },
+   "2016-2019": {
+    "altman": 0.022130428108681075,
+    "logit": 0.08983932694781457,
+    "lgbm": 0.07851779249857994
+   }
+  }
+ },
+ "validacion": [
+  2020,
+  2021
+ ],
+ "prueba": 2022,
+ "prueba_2": 2023,
+ "umbral_perfil_alto": 0.03547495658520083,
+ "umbral_perfil_alto_nota": "Probabilidad calibrada en el percentil 95 de las sociedades de 2020–2021 (≈ el 5 % de mayor riesgo); fijo para comparar años."
+}

@@ -157,6 +157,15 @@ Con la foto de noviembre de 2026. «Etiqueta» = admitida a reorganización o li
 - Antes de 2019 casi todos los eventos son reorganizaciones (3–14 liquidaciones al año); a partir de 2020 las liquidaciones pesan más. Sería razonable evaluar el modelo por tipo.
 - El respaldo del plan (cambio de «Estado actual» en la carátula) sirve poco: es un estado **al momento del reporte** (≈ 3 % de los informes ya figura en reorganización), no un evento futuro; no lo recomiendo como etiqueta.
 
+### Cortes adicionales (Fase 4, con aprobación del autor)
+
+Se descargaron 24 cortes más (13 MB; lista y URL en `pipelines/finanzas/insolvencia_cortes.json`, `python -m pipelines.finanzas.descargar_cortes`) para reconstruir el historial de procesos. Lo que se encontró:
+- **Solo los cortes de sept. y nov. de 2026 traen fecha de admisión.** El de marzo de 2020 trae la fecha completa dentro de la columna «año de apertura» para los procesos en trámite; el resto, solo el año.
+- **El año de la columna significa cosas distintas:** en un proceso «en trámite» y en las liquidaciones es el año de la admisión (coincide en el 98,8 %); en una reorganización «en ejecución» es el del **acuerdo** (la admisión suele ser un año antes: 57–58 % exacto con «acuerdo − 1», 95 % a ±1 año).
+- **La clasificación cambia:** de 2020 a 2023 hay liquidación judicial, simplificada y por adjudicación, reorganización abreviada, negociación de emergencia y validación judicial; desde 2024 solo «reorganización» y «liquidación judicial en trámite» (las liquidaciones se agrupan). El evento se define como admisión a reorganización o a cualquier liquidación.
+- **Defectos de los archivos:** un año de apertura que Excel guardó con formato de fecha (se lee como 1905: se recupera el número, comprobado contra el corte vecino con 98,7 % de coincidencia), filas con basura en `PROCESO` («COMERCIO», «G5221»), nombres de hoja y de columnas que cambian, un mes que no existe (no hay corte de junio de 2026: se usó mayo) y un archivo idéntico a otro (el listado como «trimestre 1» de 2021 es el de marzo de 2022, comprobado fila por fila; se descartó).
+- **Resultado:** 9 877 procesos de 8 251 NIT (69 % con fecha exacta, 24 % con año de apertura, 6 % con acuerdo − 1). Desde 2020 hay entre 870 y 1 190 admisiones al año; **2017, 2018 y 2019 solo 415, 696 y 716**: la base conserva únicamente lo que seguía vivo en dic-2019 (truncamiento por la izquierda).
+
 ## 7. `6cat-2gcs` — 10 000 empresas más grandes
 
 - Existe, CC BY-SA 4.0, datos actualizados el 2026-09-16, **50 000 filas** (5 cortes × 10 000: 2021–2025). Formato ancho. La descripción dice: «todas las cifras en este reporte se muestran en **Billones de Pesos**».

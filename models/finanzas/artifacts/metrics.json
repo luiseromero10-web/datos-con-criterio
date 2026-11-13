@@ -1,0 +1,634 @@
+{
+ "etiqueta": {
+  "definicion": "Admisión a reorganización o a cualquier liquidación en los años t+1 o t+2 del cierre t, por NIT, uniendo los cortes de la base de la Supersociedades",
+  "poblacion": "sociedades-año con estados individuales o separados, con etiqueta completa y no admitidas antes de t o en t",
+  "positivos_por_anio": {
+   "2016": 335,
+   "2017": 386,
+   "2018": 405,
+   "2019": 385,
+   "2020": 236,
+   "2021": 255,
+   "2022": 322,
+   "2023": 320
+  },
+  "tasa_por_anio": {
+   "2016": 0.01475,
+   "2017": 0.02015,
+   "2018": 0.02197,
+   "2019": 0.01581,
+   "2020": 0.00832,
+   "2021": 0.00927,
+   "2022": 0.01094,
+   "2023": 0.01082
+  },
+  "tipo_de_los_positivos": {
+   "reorganizacion": 2215,
+   "liquidacion": 429
+  },
+  "precision_del_ano_de_admision": {
+   "exacta": 2049,
+   "anio_apertura": 470,
+   "acuerdo_menos_1": 125
+  }
+ },
+ "particion": {
+  "entrenamiento": {
+   "ventana": "2016-2019",
+   "anios": [
+    2016,
+    2017,
+    2018,
+    2019
+   ],
+   "n": 84674
+  },
+  "validacion": {
+   "anios": [
+    2020,
+    2021
+   ],
+   "n": 55853
+  },
+  "prueba": {
+   "anio": 2022,
+   "n": 29434
+  },
+  "prueba_2": {
+   "anio": 2023,
+   "n": 29586
+  }
+ },
+ "seleccion": {
+  "publicado": "lgbm",
+  "mejor_linea_base_por_validacion": "logit",
+  "lgbm_gana_en_prueba_2022": {
+   "altman": true,
+   "logit": true
+  },
+  "lgbm_no_pierde_en_2023": {
+   "altman": true,
+   "logit": true
+  },
+  "pr_auc_validacion": {
+   "altman": 0.022130428108681075,
+   "logit": 0.08983932694781457,
+   "lgbm": 0.07851779249857994
+  },
+  "regla": "LightGBM se adopta si supera a Altman y a la logística en la prueba de 2022 (PR-AUC y recall@5 %) y no pierde contra ninguna en 2023; si no, se publica la mejor línea base por PR-AUC de validación."
+ },
+ "metricas": {
+  "altman": {
+   "validacion": {
+    "n": 54401,
+    "positivos": 481,
+    "tasa_base": 0.008841749232550872,
+    "pr_auc": 0.022130428108681075,
+    "roc_auc": 0.7378052570374528,
+    "recall_5": 0.1704781704781705,
+    "precision_5": 0.03013597941933113,
+    "recall_10": 0.30145530145530147,
+    "brier": 0.009035222411360146,
+    "brier_skill": -0.03099759852574202,
+    "ece": 0.007858740003585975,
+    "con_dato": 0.9740031869371386
+   },
+   "prueba": {
+    "n": 29080,
+    "positivos": 319,
+    "tasa_base": 0.010969738651994498,
+    "pr_auc": 0.027142695773723923,
+    "roc_auc": 0.734336291558176,
+    "recall_5": 0.1786833855799373,
+    "precision_5": 0.039202200825309494,
+    "recall_10": 0.2852664576802508,
+    "brier": 0.011116010926704384,
+    "brier_skill": -0.024573465366035663,
+    "ece": 0.005992852366744965,
+    "con_dato": 0.9879730923421893,
+    "ic95": {
+     "pr_auc": [
+      0.02250872291322323,
+      0.03356066894957615
+     ],
+     "recall_5": [
+      0.13913620329035684,
+      0.2200460750853242
+     ],
+     "brier": [
+      0.010024199388977154,
+      0.012344123548141347
+     ]
+    }
+   },
+   "prueba_2023": {
+    "n": 29218,
+    "positivos": 320,
+    "tasa_base": 0.010952152782531316,
+    "pr_auc": 0.024894383268863635,
+    "roc_auc": 0.7321074879749464,
+    "recall_5": 0.140625,
+    "precision_5": 0.030800821355236138,
+    "recall_10": 0.28125,
+    "brier": 0.011072408028694927,
+    "brier_skill": -0.022175073141567747,
+    "ece": 0.005155253028341234,
+    "con_dato": 0.9875616845805448,
+    "ic95": {
+     "pr_auc": [
+      0.020880433101192097,
+      0.029702282047656126
+     ],
+     "recall_5": [
+      0.1034146215180698,
+      0.1747690141671311
+     ],
+     "brier": [
+      0.01000952365070595,
+      0.01217644603950823
+     ]
+    }
+   }
+  },
+  "logit": {
+   "validacion": {
+    "n": 55853,
+    "positivos": 491,
+    "tasa_base": 0.00879093334288221,
+    "pr_auc": 0.08983932694781457,
+    "roc_auc": 0.8285827456258827,
+    "recall_5": 0.39307535641547864,
+    "precision_5": 0.06910132474042248,
+    "recall_10": 0.5213849287169042,
+    "brier": 0.008566412972207694,
+    "brier_skill": 0.016897604763830842,
+    "ece": 0.005910112268765228,
+    "con_dato": 1.0
+   },
+   "prueba": {
+    "n": 29434,
+    "positivos": 322,
+    "tasa_base": 0.010939729564449276,
+    "pr_auc": 0.08667201153917128,
+    "roc_auc": 0.8238888703981538,
+    "recall_5": 0.32608695652173914,
+    "precision_5": 0.07133152173913043,
+    "recall_10": 0.5093167701863354,
+    "brier": 0.010526959753730882,
+    "brier_skill": 0.02708786713639255,
+    "ece": 0.003056655026554953,
+    "con_dato": 1.0,
+    "ic95": {
+     "pr_auc": [
+      0.06482394392568426,
+      0.12160466407612255
+     ],
+     "recall_5": [
+      0.2771655147970937,
+      0.3770527753810756
+     ],
+     "brier": [
+      0.009431139172570943,
+      0.011584142845819382
+     ]
+    }
+   },
+   "prueba_2023": {
+    "n": 29586,
+    "positivos": 320,
+    "tasa_base": 0.010815926451700129,
+    "pr_auc": 0.10323612059634944,
+    "roc_auc": 0.836715813572063,
+    "recall_5": 0.375,
+    "precision_5": 0.08108108108108109,
+    "recall_10": 0.53125,
+    "brier": 0.010270568793867271,
+    "brier_skill": 0.04003885480913505,
+    "ece": 0.0029450524198270187,
+    "con_dato": 1.0,
+    "ic95": {
+     "pr_auc": [
+      0.0760435256769246,
+      0.1369196997825329
+     ],
+     "recall_5": [
+      0.32536950505829515,
+      0.42518750402369143
+     ],
+     "brier": [
+      0.009221632728303095,
+      0.011356292045867016
+     ]
+    }
+   }
+  },
+  "lgbm": {
+   "validacion": {
+    "n": 55853,
+    "positivos": 491,
+    "tasa_base": 0.00879093334288221,
+    "pr_auc": 0.07851779249857994,
+    "roc_auc": 0.8553436588553134,
+    "recall_5": 0.4175152749490835,
+    "precision_5": 0.07339778016469746,
+    "recall_10": 0.5784114052953157,
+    "brier": 0.008384616183172886,
+    "brier_skill": 0.03776104659487578,
+    "ece": 0.0003867169392619082,
+    "con_dato": 1.0
+   },
+   "prueba": {
+    "n": 29434,
+    "positivos": 322,
+    "tasa_base": 0.010939729564449276,
+    "pr_auc": 0.10870614370668517,
+    "roc_auc": 0.8506016173988145,
+    "recall_5": 0.422360248447205,
+    "precision_5": 0.09239130434782608,
+    "recall_10": 0.546583850931677,
+    "brier": 0.010303012243861051,
+    "brier_skill": 0.04778531963683841,
+    "ece": 0.003437142991842777,
+    "con_dato": 1.0,
+    "ic95": {
+     "pr_auc": [
+      0.08269542666125823,
+      0.1428762954386969
+     ],
+     "recall_5": [
+      0.3688941637630662,
+      0.4779131715643986
+     ],
+     "brier": [
+      0.009148892907020955,
+      0.011406404273521166
+     ]
+    }
+   },
+   "prueba_2023": {
+    "n": 29586,
+    "positivos": 320,
+    "tasa_base": 0.010815926451700129,
+    "pr_auc": 0.10422793821425741,
+    "roc_auc": 0.8623213584022414,
+    "recall_5": 0.39375,
+    "precision_5": 0.08513513513513514,
+    "recall_10": 0.590625,
+    "brier": 0.010179032762884838,
+    "brier_skill": 0.048594469876977464,
+    "ece": 0.0031572778642466265,
+    "con_dato": 1.0,
+    "ic95": {
+     "pr_auc": [
+      0.08212070279880136,
+      0.13967291248388555
+     ],
+     "recall_5": [
+      0.34575651782194944,
+      0.44910842871219586
+     ],
+     "brier": [
+      0.009103700102635564,
+      0.011283972612792388
+     ]
+    }
+   }
+  }
+ },
+ "sensibilidad_ventana": {
+  "2018-2019": {
+   "altman": 0.022130428108681075,
+   "logit": 0.07821611279050426,
+   "lgbm": 0.07334446494160518
+  },
+  "2016-2019": {
+   "altman": 0.022130428108681075,
+   "logit": 0.08983932694781457,
+   "lgbm": 0.07851779249857994
+  }
+ },
+ "comparaciones": {
+  "prueba": {
+   "lgbm_vs_altman": {
+    "pr_auc": 1.0,
+    "recall_5": 1.0
+   },
+   "lgbm_vs_logit": {
+    "pr_auc": 0.952,
+    "recall_5": 1.0
+   },
+   "logit_vs_altman": {
+    "pr_auc": 1.0
+   }
+  },
+  "prueba_2023": {
+   "lgbm_vs_altman": {
+    "pr_auc": 1.0,
+    "recall_5": 1.0
+   },
+   "lgbm_vs_logit": {
+    "pr_auc": 0.613,
+    "recall_5": 0.807
+   },
+   "logit_vs_altman": {
+    "pr_auc": 1.0
+   }
+  },
+  "nota": "Probabilidad de que el primer modelo supere al segundo al remuestrear las sociedades: 0,5 = empate; > 0,95 = ventaja clara."
+ },
+ "oportunidad": {
+  "positivos_con_fecha_exacta": 2049,
+  "admitidos_en_t1": 1056,
+  "pct_de_t1_en_el_primer_trimestre": 0.21496212121212122,
+  "pct_de_t1_en_el_primer_semestre": 0.4725378787878788,
+  "nota": "Esas admisiones ocurren antes (o casi al tiempo) de que se publiquen los estados de t: el modelo mide perfil, no es un aviso con meses de anticipación."
+ },
+ "supervivencia": {
+  "deja_de_reportar_por_anio": {
+   "2016": 0.1917,
+   "2017": 0.1494,
+   "2018": 0.0425,
+   "2019": 0.0609,
+   "2020": 0.0351,
+   "2021": 0.0609,
+   "2022": 0.0488,
+   "2023": 0.0695
+  },
+  "tasa_evento_si_sigue": 0.01258,
+  "tasa_evento_si_deja": 0.02109,
+  "sociedades_que_dejan": 15644,
+  "eventos_entre_las_que_dejan": 330,
+  "pct_positivos_que_dejan": 0.12481089258698941,
+  "pct_negativos_que_dejan": 0.07777433558655784,
+  "nota": "Dejar de reportar no es un evento de insolvencia y no se mezcla en la etiqueta: es una salida aparte, aquí solo descrita."
+ },
+ "subgrupos_prueba": {
+  "grupo": {
+   "G1": {
+    "n": 4006,
+    "positivos": 47,
+    "tasa": 0.011732401397903146,
+    "pr_auc": 0.16685151717197022,
+    "recall_5_global": 0.3617021276595745
+   },
+   "G2": {
+    "n": 25428,
+    "positivos": 275,
+    "tasa": 0.010814849771904987,
+    "pr_auc": 0.10767064502973306,
+    "recall_5_global": 0.43272727272727274
+   }
+  },
+  "tipo_estado": {
+   "individual": {
+    "n": 26198,
+    "positivos": 270,
+    "tasa": 0.010306130238949537,
+    "pr_auc": 0.10644302767442886,
+    "recall_5_global": 0.4222222222222222
+   },
+   "separado": {
+    "n": 3236,
+    "positivos": 52,
+    "tasa": 0.016069221260815822,
+    "pr_auc": 0.14587530284767625,
+    "recall_5_global": 0.4230769230769231
+   }
+  },
+  "tercil_ingresos": {
+   "bajo": {
+    "n": 9050,
+    "positivos": 50,
+    "tasa": 0.0055248618784530384,
+    "pr_auc": 0.07931947493548787,
+    "recall_5_global": 0.46
+   },
+   "medio": {
+    "n": 9049,
+    "positivos": 124,
+    "tasa": 0.013703171621173611,
+    "pr_auc": 0.14625727695190494,
+    "recall_5_global": 0.46774193548387094
+   },
+   "alto": {
+    "n": 9050,
+    "positivos": 134,
+    "tasa": 0.014806629834254143,
+    "pr_auc": 0.12275240676740883,
+    "recall_5_global": 0.39552238805970147
+   }
+  },
+  "familia_evento": {
+   "liquidacion": {
+    "positivos": 43,
+    "recall_5_global": 0.6046511627906976
+   },
+   "reorganizacion": {
+    "positivos": 279,
+    "recall_5_global": 0.3942652329749104
+   }
+  },
+  "precision_evento": {
+   "anio_apertura": {
+    "positivos": 73,
+    "recall_5_global": 0.4931506849315068
+   },
+   "exacta": {
+    "positivos": 249,
+    "recall_5_global": 0.40160642570281124
+   }
+  },
+  "deja_de_reportar": {
+   "0.0": {
+    "n": 27997,
+    "positivos": 274,
+    "tasa": 0.009786762867450083,
+    "pr_auc": 0.09507511331798636,
+    "recall_5_global": 0.4051094890510949
+   },
+   "1.0": {
+    "n": 1437,
+    "positivos": 48,
+    "tasa": 0.033402922755741124,
+    "pr_auc": 0.20854844279103255,
+    "recall_5_global": 0.5208333333333334
+   }
+  },
+  "seccion": {
+   "A": {
+    "n": 1852,
+    "positivos": 14,
+    "tasa": 0.00755939524838013,
+    "pr_auc": 0.11838290628317866,
+    "recall_5_global": 0.5
+   },
+   "C": {
+    "n": 3809,
+    "positivos": 64,
+    "tasa": 0.01680231031766868,
+    "pr_auc": 0.1650892985886664,
+    "recall_5_global": 0.546875
+   },
+   "F": {
+    "n": 3510,
+    "positivos": 75,
+    "tasa": 0.021367521367521368,
+    "pr_auc": 0.17172857204452185,
+    "recall_5_global": 0.4266666666666667
+   },
+   "G": {
+    "n": 6997,
+    "positivos": 92,
+    "tasa": 0.013148492210947549,
+    "pr_auc": 0.11130905612028304,
+    "recall_5_global": 0.34782608695652173
+   },
+   "L": {
+    "n": 4722,
+    "positivos": 17,
+    "tasa": 0.003600169419737399,
+    "pr_auc": 0.025863741368246384,
+    "recall_5_global": 0.11764705882352941
+   },
+   "M": {
+    "n": 2545,
+    "positivos": 15,
+    "tasa": 0.005893909626719057,
+    "pr_auc": 0.1382048196835193,
+    "recall_5_global": 0.6666666666666666
+   }
+  }
+ },
+ "variables_logit": [
+  {
+   "variable": "n_senales",
+   "coef": 1.9493
+  },
+  {
+   "variable": "grupo=G1",
+   "coef": -1.7171
+  },
+  {
+   "variable": "tipo_estado=separado",
+   "coef": -1.4671
+  },
+  {
+   "variable": "tipo_estado=individual",
+   "coef": -1.1927
+  },
+  {
+   "variable": "grupo=G2",
+   "coef": -0.9427
+  },
+  {
+   "variable": "cobertura_menor_1",
+   "coef": -0.8885
+  },
+  {
+   "variable": "seccion=K",
+   "coef": -0.7771
+  },
+  {
+   "variable": "razon_corriente_menor_1",
+   "coef": -0.6824
+  },
+  {
+   "variable": "seccion=L",
+   "coef": -0.6309
+  },
+  {
+   "variable": "endeudamiento",
+   "coef": 0.612
+  },
+  {
+   "variable": "caida_ingresos_30",
+   "coef": -0.5503
+  },
+  {
+   "variable": "flujo_operacion_ingresos__vacio",
+   "coef": -0.5427
+  },
+  {
+   "variable": "departamento=MAGDALENA",
+   "coef": -0.5421
+  },
+  {
+   "variable": "perdidas_consecutivas",
+   "coef": -0.5207
+  },
+  {
+   "variable": "pct_apalancamiento",
+   "coef": -0.4965
+  }
+ ],
+ "variables_lgbm": [
+  {
+   "variable": "roe",
+   "ganancia": 0.1045
+  },
+  {
+   "variable": "n_senales",
+   "ganancia": 0.0849
+  },
+  {
+   "variable": "endeudamiento",
+   "ganancia": 0.0617
+  },
+  {
+   "variable": "apalancamiento",
+   "ganancia": 0.0505
+  },
+  {
+   "variable": "edad",
+   "ganancia": 0.0477
+  },
+  {
+   "variable": "seccion",
+   "ganancia": 0.0401
+  },
+  {
+   "variable": "roa",
+   "ganancia": 0.0364
+  },
+  {
+   "variable": "departamento",
+   "ganancia": 0.0362
+  },
+  {
+   "variable": "cobertura_intereses",
+   "ganancia": 0.0358
+  },
+  {
+   "variable": "log_activo",
+   "ganancia": 0.0336
+  },
+  {
+   "variable": "dias_inventario",
+   "ganancia": 0.0281
+  },
+  {
+   "variable": "ciclo_caja",
+   "ganancia": 0.0242
+  },
+  {
+   "variable": "margen_bruto",
+   "ganancia": 0.0224
+  },
+  {
+   "variable": "margen_neto",
+   "ganancia": 0.0219
+  },
+  {
+   "variable": "dias_proveedores",
+   "ganancia": 0.0209
+  }
+ ],
+ "umbral_altman_publicado": {
+  "zona_alerta": "Z'' < 4,35",
+  "prueba": {
+   "marcadas": 0.14316776516953184,
+   "precision": 0.028476506881822496,
+   "recall": 0.37267080745341613
+  }
+ }
+}

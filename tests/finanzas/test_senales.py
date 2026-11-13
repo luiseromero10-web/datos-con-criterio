@@ -76,7 +76,8 @@ def sintetico(tmp_path: Path, n=60, anios=(2023, 2024)) -> Path:
                  "inventarios_corriente": ing * 0.1, "cxc_corriente": ing * 0.2, "cxp_comerciales": ing * 0.1, "costos_financieros": ing * 0.01,
                  "flujo_operacion": ing * 0.04, "ganancias_acumuladas": ing * 0.3}
             filas.append(f)
-            empresas.append({"nit": f["nit"], "anio": a, "ciiu_codigo": "4711", "opinion_revisor": "limpio", "estado_actual": "ACTIVA"})
+            empresas.append({"nit": f["nit"], "anio": a, "ciiu_codigo": "4711", "opinion_revisor": "limpio", "estado_actual": "ACTIVA", "grupo": "G2",
+                             "tipo_estado": "individual", "ciiu_division": "47", "departamento": "ANTIOQUIA", "fecha_constitucion": pd.Timestamp("2005-06-01").date()})
     todo = pd.DataFrame(filas)
     for v in {r.variable for r in cp.RUBROS} - set(todo.columns):
         todo[v] = np.nan

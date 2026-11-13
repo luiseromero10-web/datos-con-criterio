@@ -119,6 +119,7 @@ def validadores_vacios(monkeypatch):
     monkeypatch.setattr(val, "validar_silver", lambda data: [])
     monkeypatch.setattr(val, "validar_gold", lambda data, anios: ([], ["aviso"], {"x": 1}))
     monkeypatch.setattr(val, "validar_fase3", lambda data, anios: [])
+    monkeypatch.setattr(val, "validar_fase4", lambda data, anios: [])
 
 
 def test_fallo_forzado(validadores_vacios, monkeypatch, tmp_path):

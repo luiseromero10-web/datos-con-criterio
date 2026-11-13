@@ -9,6 +9,7 @@ Las advertencias (valores extremos que vienen de la fuente) se anotan en el repo
 """
 from __future__ import annotations
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -198,6 +199,10 @@ def validar_gold(data: Path, anios: list[int]) -> tuple[list[str], list[str], di
     return problemas, avisos, metricas
 
 
+COLUMNAS_ALERTA = {"dimension", "codigo", "nombre", "anio", "muestra", "n_empresas", "p_media", "pct_perfil_alto", "n_perfil_alto", "umbral", "modelo",
+                   "n_con_etiqueta", "n_eventos", "tasa_observada"}
+MODELOS_ALERTA = {"altman", "logit", "lgbm"}
+MIN_GRUPO_ALERTA = 30
 MAX_SIN_PARES = 0.05  # desde 2020 (el CIIU de la carátula es propio) casi todas las sociedades deben tener pares
 PRIMER_ANIO_CON_CIIU = 2020
 
@@ -262,6 +267,36 @@ def validar_fase3(data: Path, anios: list[int]) -> list[str]:
     return problemas
 
 
+def validar_fase4(data: Path, anios: list[int], artefactos: Path | None = None) -> list[str]:
+    """La salida del modelo de alerta es solo agregada: sin NIT, sin puntajes por sociedad y sin grupos chicos."""
+    artefactos = artefactos or Path(__file__).resolve().parents[2] / "models" / "finanzas" / "artifacts"
+    ruta = data / "gold" / "alerta_agregada.parquet"
+    if not ruta.exists():
+        return ["Fase 4: falta alerta_agregada.parquet; ¿corrió models.finanzas.puntuar?"]
+    a = pd.read_parquet(ruta)
+    problemas: list[str] = []
+    extra = set(a.columns) - COLUMNAS_ALERTA
+    if extra:
+        problemas.append(f"Fase 4: columnas no permitidas en la salida agregada {sorted(extra)} (ni NIT ni puntajes por sociedad).")
+    if (a["n_empresas"] < MIN_GRUPO_ALERTA).any():
+        problemas.append(f"Fase 4: hay grupos con menos de {MIN_GRUPO_ALERTA} sociedades.")
+    if not a["pct_perfil_alto"].between(0, 1).all() or not a["p_media"].between(0, 1).all():
+        problemas.append("Fase 4: proporciones o probabilidades fuera de 0–1.")
+    if not set(a["modelo"]) <= MODELOS_ALERTA or a["modelo"].nunique() != 1 or a["umbral"].nunique() != 1:
+        problemas.append("Fase 4: la salida debe venir de un solo modelo y un solo umbral.")
+    total = a[a["dimension"] == "total"]
+    if set(total["anio"]) != set(anios):
+        problemas.append(f"Fase 4: el total nacional debe tener todos los años {anios}; tiene {sorted(set(total['anio']))}.")
+    sel_ruta = artefactos / "seleccion.json"
+    if not sel_ruta.exists():
+        problemas.append("Fase 4: falta models/finanzas/artifacts/seleccion.json (el modelo versionado).")
+    else:
+        sel = json.loads(sel_ruta.read_text(encoding="utf-8"))
+        if a["modelo"].iloc[0] != sel["publicado"] or abs(a["umbral"].iloc[0] - sel["umbral_perfil_alto"]) > 1e-12:
+            problemas.append("Fase 4: la salida no coincide con el modelo y el umbral de seleccion.json.")
+    return problemas
+
+
 def validar(data: Path = DATA) -> tuple[list[str], list[str], dict]:
     anios = anios_presentes(data)
     problemas = validar_bronze(data, anios)
@@ -271,6 +306,7 @@ def validar(data: Path = DATA) -> tuple[list[str], list[str], dict]:
     p, avisos, metricas = validar_gold(data, anios)
     problemas += p
     problemas += validar_fase3(data, anios)
+    problemas += validar_fase4(data, anios)
     if os.environ.get("FORZAR_FALLO") == "1":
         problemas.append("Fallo forzado (FORZAR_FALLO=1) para probar el flujo de alerta.")
     return problemas, avisos, metricas
