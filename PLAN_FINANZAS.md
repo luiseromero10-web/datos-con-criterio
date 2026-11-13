@@ -254,4 +254,4 @@ Trabajar fase por fase. Al terminar cada una: verificar sus criterios ejecutando
 
 ## 11. Estado
 
-- [x] Fase 0 (2026-11-12, confirmada por el autor; ver docs/finanzas/fuentes.md y decisiones.md) · [x] Fase 1 (2026-11-12, local; ver docs/finanzas/calidad_fase1.md y decisiones.md F5) · [ ] Fase 2 · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
+- [x] Fase 0 (2026-11-12, confirmada por el autor; ver docs/finanzas/fuentes.md y decisiones.md) · [x] Fase 1 (2026-11-12, local; ver docs/finanzas/calidad_fase1.md y decisiones.md F5) · [~] Fase 2 (publicación manual en R2 verificada 2026-11-12; falta la corrida con fallo forzado) · [ ] Fase 3 · [ ] Fase 4 · [ ] Fase 5 · [ ] Fase 6 · [ ] Fase 7
